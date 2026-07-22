@@ -1,0 +1,225 @@
+{
+  "version": "0.1.0",
+  "escenarios": [
+    {
+      "id": "robux-gratis-contrasena",
+      "tipo": "monedas-gratis",
+      "canal": "chat-juego",
+      "dificultad": 1,
+      "remitente": {
+        "nombre": "RobuxKing_Oficial",
+        "avatar": "👑",
+        "verificado": false
+      },
+      "mensaje": "Hola!! Estoy regalando 10000 Robux a los primeros 5. Solo pon tu usuario y tu contraseña aquí y te los mando ahorita.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "tu contraseña",
+          "explicacion": "Tu contraseña es como la llave de tu casa. Nadie que sea de verdad te la va a pedir."
+        },
+        {
+          "fragmento": "los primeros 5",
+          "explicacion": "Te meten prisa para que no pienses. Esa prisa es la trampa."
+        }
+      ],
+      "leccion": "Nadie regala monedas a cambio de tu contraseña.",
+      "permiteConversacion": true,
+      "perfilEstafador": {
+        "disfraz": "un jugador famoso que dice regalar Robux",
+        "tacticas": ["prisa", "premio", "insistencia"],
+        "objetivo": "conseguir la contraseña de la cuenta"
+      }
+    },
+    {
+      "id": "skin-ganada-paga-envio",
+      "tipo": "sorteo-falso",
+      "canal": "whatsapp",
+      "dificultad": 1,
+      "remitente": {
+        "nombre": "+51 9** *** 412",
+        "avatar": "🎁",
+        "verificado": false
+      },
+      "mensaje": "¡FELICIDADES! Ganaste la skin legendaria del sorteo. Solo paga S/ 5 de envío con el Yape de tu mamá y te la activamos hoy.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "paga S/ 5 de envío",
+          "explicacion": "Si un premio es gratis, no se paga nada. Cobrar por un regalo es señal de estafa."
+        },
+        {
+          "fragmento": "el Yape de tu mamá",
+          "explicacion": "Te piden usar la plata de un adulto sin que se entere. Eso siempre se le cuenta a un adulto."
+        }
+      ],
+      "leccion": "Un premio de verdad nunca te cobra para entregartelo.",
+      "permiteConversacion": true,
+      "perfilEstafador": {
+        "disfraz": "el organizador de un sorteo de skins",
+        "tacticas": ["premio", "prisa", "autoridad falsa"],
+        "objetivo": "que el nino haga un pago por un premio inexistente"
+      }
+    },
+    {
+      "id": "admin-pide-clave",
+      "tipo": "robo-de-cuenta",
+      "canal": "discord",
+      "dificultad": 2,
+      "remitente": {
+        "nombre": "Moderador | Staff",
+        "avatar": "🛡️",
+        "verificado": true
+      },
+      "mensaje": "Soy admin del servidor. Detectamos un hackeo en tu cuenta. Mandame tu clave para verificar que eres tú o la bloqueamos en 10 minutos.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "Mandame tu clave",
+          "explicacion": "Un admin de verdad ya tiene acceso al sistema. Nunca necesita tu clave."
+        },
+        {
+          "fragmento": "en 10 minutos",
+          "explicacion": "El reloj corriendo es el truco favorito de un estafador."
+        }
+      ],
+      "leccion": "Un admin nunca te pide tu clave, ni aunque tenga insignia.",
+      "permiteConversacion": true,
+      "perfilEstafador": {
+        "disfraz": "moderador oficial del servidor",
+        "tacticas": ["autoridad falsa", "prisa", "miedo a perder la cuenta"],
+        "objetivo": "conseguir la clave con excusa de verificacion"
+      }
+    },
+    {
+      "id": "apk-vidas-infinitas",
+      "tipo": "hack-con-virus",
+      "canal": "chat-juego",
+      "dificultad": 2,
+      "remitente": {
+        "nombre": "xX_ModsPro_Xx",
+        "avatar": "👾",
+        "verificado": false
+      },
+      "mensaje": "Descarga este archivo y tienes vidas infinitas y skins desbloqueadas. Es seguro, lo uso yo. No lo bajes de la tienda que ahí no funciona.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "Descarga este archivo",
+          "explicacion": "Archivos que llegan por chat pueden traer virus que roban tus cuentas."
+        },
+        {
+          "fragmento": "No lo bajes de la tienda",
+          "explicacion": "Cuando te dicen que evites la tienda oficial, es porque ahí lo bloquearían."
+        }
+      ],
+      "leccion": "Los juegos y apps solo se bajan de la tienda oficial.",
+      "permiteConversacion": false
+    },
+    {
+      "id": "link-robl0x-premios",
+      "tipo": "link-tramposo",
+      "canal": "sms",
+      "dificultad": 3,
+      "remitente": {
+        "nombre": "ROBLOX-PREMIOS",
+        "avatar": "🔗",
+        "verificado": false
+      },
+      "mensaje": "Tu cuenta ganó el evento de temporada. Reclama en robl0x-premios.com antes que expire.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "robl0x-premios.com",
+          "explicacion": "Mira bien: dice robl0x con cero, no Roblox. Cambian una letra para engañarte."
+        },
+        {
+          "fragmento": "antes que expire",
+          "explicacion": "Otra vez la prisa. Cuando te apuran, para y revisa."
+        }
+      ],
+      "leccion": "Lee la direccion letra por letra: una sola cambiada ya es trampa.",
+      "permiteConversacion": false
+    },
+    {
+      "id": "amigo-hackeado-pide-codigo",
+      "tipo": "suplantacion-de-amigo",
+      "canal": "whatsapp",
+      "dificultad": 3,
+      "remitente": {
+        "nombre": "Mateo (colegio)",
+        "avatar": "🧒",
+        "verificado": false
+      },
+      "mensaje": "Oe habla Mateo, perdí mi cel. Te va a llegar un código de 6 números a tu WhatsApp, pasámelo porfa para recuperar mi cuenta.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "pasámelo porfa",
+          "explicacion": "Los codigos que llegan a tu telefono son solo tuyos. Ni tu mejor amigo los necesita."
+        },
+        {
+          "fragmento": "perdí mi cel",
+          "explicacion": "Es una excusa clasica para escribirte desde un numero desconocido."
+        }
+      ],
+      "leccion": "El codigo que llega a tu celular no se comparte con nadie.",
+      "permiteConversacion": true,
+      "perfilEstafador": {
+        "disfraz": "un companero de colegio que perdio su celular",
+        "tacticas": ["confianza fingida", "insistencia", "prisa"],
+        "objetivo": "conseguir el codigo de verificacion de 6 digitos"
+      }
+    },
+    {
+      "id": "codigo-verificacion-real",
+      "tipo": "legitimo",
+      "canal": "sms",
+      "dificultad": 1,
+      "remitente": {
+        "nombre": "Roblox",
+        "avatar": "✅",
+        "verificado": true
+      },
+      "mensaje": "Tu código de verificación es 481 209. Nunca compartas este código con nadie. Roblox jamás te lo pedirá.",
+      "respuestaCorrecta": "confianza",
+      "senales": [
+        {
+          "fragmento": "Nunca compartas este código",
+          "explicacion": "Los mensajes reales te avisan que no compartas nada. Los falsos te piden cosas."
+        },
+        {
+          "fragmento": "Tu código de verificación",
+          "explicacion": "Este mensaje solo te informa: no pide clave, ni plata, ni que entres a un link."
+        }
+      ],
+      "leccion": "Un mensaje real te informa; uno falso te pide algo.",
+      "permiteConversacion": false
+    },
+    {
+      "id": "amigo-invita-partida",
+      "tipo": "legitimo",
+      "canal": "chat-juego",
+      "dificultad": 2,
+      "remitente": {
+        "nombre": "Valeria_09",
+        "avatar": "🎮",
+        "verificado": false
+      },
+      "mensaje": "Oe entra al server que armamos partida con los del salón. Te espero en el lobby, no te demores.",
+      "respuestaCorrecta": "confianza",
+      "senales": [
+        {
+          "fragmento": "armamos partida",
+          "explicacion": "Es una invitacion normal a jugar: no te pide datos ni plata."
+        },
+        {
+          "fragmento": "no te demores",
+          "explicacion": "Apurar no siempre es trampa. Lo que importa es que no te piden nada tuyo."
+        }
+      ],
+      "leccion": "No todo mensaje apurado es estafa: revisa si te piden algo tuyo.",
+      "permiteConversacion": false
+    }
+  ]
+}

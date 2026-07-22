@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Resumen al Terminar Tarea",
+  "description": "Al completar una tarea de un spec, genera un resumen en espanol de los cambios, marca la tarea y propone el siguiente paso segun el plan de 7 dias",
+  "version": "1.0.0",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Resume en espanol y en maximo 6 lineas: 1) que cambios se hicieron en esta tarea, 2) que tarea de que archivo .kiro/specs/*/tasks.md quedo completada (marcala con [x]), 3) a quien del equipo le toca el siguiente paso segun el owner del spec (Jerick UI, Francis backend/AWS, Clau contenido/PM), 4) si el cambio afecta a otra area, dilo explicitamente para que no se pisen."
+  }
+}

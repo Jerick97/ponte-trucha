@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Validar Banco de Escenarios",
+  "description": "Cada vez que se edita el banco de escenarios o su esquema, corre el validador: forma del JSON, coherencia tipo/respuesta, fragmentos literales y proporcion de mensajes legitimos",
+  "version": "1.0.0",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "src/data/escenarios.json",
+      "src/data/escenarios.schema.json"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run validar:escenarios",
+    "timeout": 30
+  }
+}

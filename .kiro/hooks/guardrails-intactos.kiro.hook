@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Guardrails Intactos",
+  "description": "Protege la capa de seguridad infantil: si se edita el prompt del estafador, el filtro de salida o la Lambda, obliga a revisar que las reglas duras sigan en pie",
+  "version": "1.0.0",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["write", "edit"],
+    "patterns": [
+      "src/llm/prompts.ts",
+      "src/llm/guardrails.ts",
+      "infra/lambda/estafador/index.mjs"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Este archivo es parte de la contencion de seguridad infantil descrita en .kiro/steering/seguridad-infantil.md. Antes de escribir verifica que el cambio conserva: 1) la prohibicion explicita de pedir datos reales del nino, 2) la prohibicion de temas personales, sexuales, de violencia o de encuentros en persona, 3) el limite de palabras por respuesta, 4) el reemplazo por guion seguro cuando la salida toca un termino prohibido, 5) que la Lambda no loguea el contenido del chat. Si el cambio debilita cualquiera de estos puntos, no lo apliques: explica el riesgo y propon una alternativa."
+  }
+}

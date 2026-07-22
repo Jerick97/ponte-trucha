@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Revisar Tono Infantil",
+  "description": "Antes de escribir texto visible para el nino (escenarios o componentes), verifica que cumpla el steering de tono infantil y el de seguridad infantil",
+  "version": "1.0.0",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["write"],
+    "patterns": [
+      "src/data/**",
+      "src/components/**",
+      "src/game/nivelTrucha.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Antes de escribir este archivo revisa todo el texto visible para el nino contra .kiro/steering/tono-infantil.md y .kiro/steering/seguridad-infantil.md. Verifica: 1) lo entiende un nino de 8 anos sin preguntar el significado de una palabra, 2) no usa jerga tecnica (phishing, malware, dominio, ciberdelincuente), 3) no ensena con miedo ni regana en el feedback de un fallo, 4) las frases no pasan de 18 palabras, 5) no toca los temas prohibidos del steering de seguridad infantil. Si algo no cumple, corrigelo antes de escribir y explica en una linea que cambiaste."
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "projectName": "Ponte Trucha Kids",
+  "projectDescription": "Web app donde ninos de 8 a 13 anos practican a detectar estafas digitales en un telefono simulado, con un estafador conversacional que corre on-device",
+  "version": "0.1.0",
+  "language": "TypeScript",
+  "framework": "React 18 + Vite",
+  "hackathon": {
+    "nombre": "Hackathon Kiro + AWS - Codigo Facilito",
+    "vertical": "Aplicaciones web",
+    "entregables": [
+      "Web app desplegada con URL publica",
+      "Repositorio en GitHub con README",
+      "Video de 3 minutos",
+      "Diagrama de arquitectura"
+    ]
+  },
+  "features": [
+    "Telefono simulado con mensajes de chat, WhatsApp, SMS y Discord",
+    "Decision binaria: trampa o de confianza",
+    "Feedback educativo con senales resaltadas",
+    "Estafador conversacional con LLM on-device (Prompt API de Chrome)",
+    "Fallback a AWS Lambda + Mistral",
+    "Rachas, puntaje y nivel de trucha compartible",
+    "Banco curado de ~20 escenarios validados por hook de Kiro"
+  ],
+  "technologies": [
+    "React 18",
+    "TypeScript",
+    "Vite 6",
+    "Tailwind CSS 4",
+    "Zustand",
+    "Prompt API (Gemini Nano on-device)",
+    "AWS Lambda + Mistral",
+    "AWS S3 + CloudFront",
+    "Vitest"
+  ],
+  "team": [
+    {
+      "nombre": "Jerick",
+      "rol": "Frontend / UI",
+      "responsabilidades": [
+        "Telefono simulado y sistema de burbujas",
+        "Loop de pantallas y transiciones",
+        "Design tokens y pulido visual",
+        "Accesibilidad y responsive movil"
+      ],
+      "owner_de": ["src/components", "src/index.css", "index.html"]
+    },
+    {
+      "nombre": "Francis",
+      "rol": "Backend / Arquitectura AWS",
+      "responsabilidades": [
+        "Capa LLM: Prompt API on-device y fallback Lambda",
+        "Guardrails de seguridad infantil en la salida del modelo",
+        "Despliegue S3 + CloudFront y Lambda Function URL",
+        "Diagrama de arquitectura y control de costos"
+      ],
+      "owner_de": ["src/llm", "infra", ".github/workflows"]
+    },
+    {
+      "nombre": "Clau",
+      "rol": "PM / Contenido y logica de negocio",
+      "responsabilidades": [
+        "Banco de escenarios y tono infantil",
+        "Reglas del juego: puntaje, rachas, nivel de trucha",
+        "Guion del video y narrativa del pitch",
+        "Coordinacion del plan de 7 dias"
+      ],
+      "owner_de": ["src/data", "src/game", ".kiro/steering/tono-infantil.md", "docs/video"]
+    }
+  ],
+  "developmentSetup": {
+    "nodeVersion": "20+",
+    "packageManager": "npm",
+    "buildTool": "Vite",
+    "testFramework": "Vitest",
+    "linter": "ESLint"
+  },
+  "projectStructure": {
+    "src/components": "Componentes React de presentacion, sin reglas de juego",
+    "src/game": "Logica pura del juego: puntaje, rondas, nivel de trucha",
+    "src/llm": "Estafador conversacional: proveedores, prompts y guardrails",
+    "src/data": "Banco de escenarios y su esquema JSON",
+    "src/store": "Estado global con zustand, solo orquestacion",
+    "src/types": "Contratos compartidos entre las tres areas",
+    "src/test": "Pruebas con Vitest",
+    "infra": "Lambda de fallback y notas de despliegue AWS",
+    "scripts": "Validador del banco de escenarios",
+    ".kiro/specs": "Especificaciones por feature (requirements, design, tasks)",
+    ".kiro/steering": "Guias que Kiro aplica siempre",
+    ".kiro/hooks": "Automatizaciones de Kiro",
+    ".kiro/docs": "Documentacion operativa del equipo"
+  },
+  "deployment": {
+    "devCommand": "npm run dev",
+    "buildCommand": "npm run build",
+    "previewCommand": "npm run preview",
+    "lintCommand": "npm run lint",
+    "testCommand": "npm run test",
+    "validateContentCommand": "npm run validar:escenarios",
+    "hosting": "S3 + CloudFront (free tier)"
+  },
+  "qualityMetrics": {
+    "targetCoverageLogica": "80%+ en src/game y src/llm",
+    "accesibilidad": "WCAG 2.2 AA, area tactil minima 44x44",
+    "privacidad": "Cero datos personales del nino, sin login, sin analitica de menores",
+    "presupuestoAWS": "USD 0 dentro del free tier"
+  }
+}
