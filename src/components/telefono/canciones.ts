@@ -1,17 +1,17 @@
 /**
  * Pistas de musica de la pantalla de bloqueo. Se detectan solas: cualquier
- * archivo de audio que caiga en src/assets/audio aparece en el reproductor
- * (el nombre del archivo se vuelve el titulo). Si hay una imagen en la misma
- * carpeta cuyo nombre empieza igual, se usa como caratula.
+ * archivo de audio que caiga en src/assets/audio/musica aparece en el
+ * reproductor (el nombre del archivo se vuelve el titulo). Si hay una imagen
+ * en la misma carpeta cuyo nombre empieza igual, se usa como caratula.
  */
 
-const audios = import.meta.glob('../../assets/audio/*.{mp3,ogg,m4a,wav}', {
+const audios = import.meta.glob('../../assets/audio/musica/*.{mp3,ogg,m4a,wav}', {
   eager: true,
   query: '?url',
   import: 'default',
 }) as Record<string, string>;
 
-const caratulas = import.meta.glob('../../assets/audio/*.{webp,png,jpg,jpeg}', {
+const caratulas = import.meta.glob('../../assets/audio/musica/*.{webp,png,jpg,jpeg}', {
   eager: true,
   query: '?url',
   import: 'default',

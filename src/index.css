@@ -42,6 +42,7 @@
 
   /* Acentos del sistema simulado */
   --color-musica: #1ed760;
+  --color-flash: #fff291;
 
   /* Apps simuladas (par icono / fondo de pantalla interna) */
   --color-app-whatsapp: #1da851;
@@ -83,6 +84,85 @@
 }
 .cara-trasera {
   transform: rotateY(180deg);
+}
+
+/* --- Acabado fisico de la carcasa (grosor y espalda) ----------------- */
+
+/* Canto metalico: aro claro + brillo interior que da sensacion de grosor. */
+.cara-marco {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.45),
+    inset 0 0 4px 1px rgb(255 255 255 / 0.35),
+    0 22px 45px -18px rgb(0 0 0 / 0.6);
+}
+/* Bandas de antena del canto; sin backface, se ven desde ambas caras. */
+.banda-antena {
+  background: rgb(255 255 255 / 0.28);
+}
+/* Reflejo diagonal sobre el vidrio trasero. */
+.brillo-trasero {
+  background: radial-gradient(circle farthest-corner at 75% 0%, rgb(255 255 255 / 0.14), transparent 55%);
+}
+/* Modulo de camaras con relieve: sombra caida + luz rasante. */
+.modulo-camaras {
+  background: linear-gradient(45deg, rgb(0 0 0 / 0.4), rgb(255 255 255 / 0.04));
+  box-shadow:
+    1px 1px 10px 0 rgb(0 0 0 / 0.45),
+    inset 2px 2px 6px -4px rgb(255 255 255 / 0.5);
+}
+/* Cada lente: aro con brillo, cuerpo hundido y cristal con reflejo. */
+.camara-lente {
+  position: absolute;
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(45deg, var(--color-carcasa) 60%, rgb(255 255 255 / 0.5));
+  box-shadow: -2px 2px 8px 0 rgb(0 0 0 / 0.8);
+}
+.camara-lente::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 9999px;
+  border: 11px solid rgb(0 0 0 / 0.4);
+  background: var(--color-pantalla-apagada);
+}
+.camara-lente::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at 30% 25%, var(--color-carcasa-borde), var(--color-pantalla-apagada) 70%);
+  box-shadow: inset 2px 0 4px -2px rgb(255 255 255 / 0.5);
+}
+/* Flash: es la linterna real del simulador (se enciende desde el lock). */
+.flash-trasero {
+  position: absolute;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background: radial-gradient(var(--color-flash), var(--color-lock-texto));
+  transition:
+    filter 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.flash-trasero.encendido {
+  filter: brightness(1.35);
+  box-shadow:
+    0 0 10px 3px rgb(255 255 255 / 0.9),
+    0 0 34px 14px rgb(255 242 145 / 0.45);
+}
+.sensor-trasero {
+  position: absolute;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 9999px;
+  background: var(--color-pantalla-apagada);
+  box-shadow: inset 0 0 2px rgb(255 255 255 / 0.15);
 }
 
 /* Arranque: la carcasa entra girada desde abajo y voltea al frente. */

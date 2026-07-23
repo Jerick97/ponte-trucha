@@ -3,9 +3,10 @@
  * fases de la partida (que se ve). Ninguna regla de juego vive aqui.
  */
 
-import { useEffect, useReducer } from 'react';
+import { useEffect, useReducer, useState } from 'react';
 import { ESTADO_INICIAL, transicion } from './components/telefono/maquina';
 import { precargarIconos } from './components/telefono/precargarIconos';
+import { reproducirSonido } from './components/telefono/sonidos';
 import { APPS, appPorCanal, type AppSimulada } from './components/telefono/apps';
 import { Iphone } from './components/telefono/Iphone';
 import { PantallaApagada } from './components/telefono/PantallaApagada';
@@ -28,6 +29,8 @@ function prefiereMenosMovimiento(): boolean {
 
 export default function App() {
   const [telefono, despachar] = useReducer(transicion, ESTADO_INICIAL);
+  // Linterna: el boton vive en el lock y el flash en la parte trasera.
+  const [linterna, setLinterna] = useState(false);
 
   // Los iconos se descargan mientras el nino ve la pantalla apagada.
   useEffect(precargarIconos, []);
@@ -130,7 +133,10 @@ export default function App() {
     if (telefono.energia === 'apagado') {
       return (
         <PantallaApagada
-          onEncender={() => despachar({ tipo: 'ENCENDER', saltarAnimacion: prefiereMenosMovimiento() })}
+          onEncender={() => {
+            reproducirSonido('encendido');
+            despachar({ tipo: 'ENCENDER', saltarAnimacion: prefiereMenosMovimiento() });
+          }}
         />
       );
     }
@@ -158,6 +164,8 @@ export default function App() {
       return (
         <PantallaBloqueo
           onDesbloquear={desbloquear}
+          linterna={linterna}
+          onAlternarLinterna={() => setLinterna(!linterna)}
           notificacion={notificacionBloqueo}
           onAbrirNotificacion={() => {
             desbloquear();
@@ -197,8 +205,12 @@ export default function App() {
         arrancando={telefono.energia === 'encendiendo'}
         puedeGirar={telefono.energia === 'encendido'}
         puedeBloquear={telefono.energia === 'encendido' && !telefono.bloqueado}
+        linternaEncendida={linterna}
         onGirar={() => despachar({ tipo: 'GIRAR' })}
-        onBloquear={() => despachar({ tipo: 'BLOQUEAR' })}
+        onBloquear={() => {
+          reproducirSonido('bloqueo');
+          despachar({ tipo: 'BLOQUEAR' });
+        }}
       >
         {pantalla()}
       </Iphone>

@@ -16,6 +16,8 @@ interface Props {
   puedeGirar: boolean;
   /** El boton lateral derecho (bloquear) esta activo. */
   puedeBloquear: boolean;
+  /** Enciende el flash de la parte trasera (linterna del lock screen). */
+  linternaEncendida: boolean;
   onGirar: () => void;
   onBloquear: () => void;
   children: ReactNode;
@@ -26,6 +28,7 @@ export function Iphone({
   arrancando,
   puedeGirar,
   puedeBloquear,
+  linternaEncendida,
   onGirar,
   onBloquear,
   children,
@@ -85,8 +88,14 @@ export function Iphone({
           </button>
         )}
 
+        {/* Bandas de antena del canto (detalle del marco metalico) */}
+        <span aria-hidden="true" className="banda-antena absolute right-16 top-0 z-20 h-1.5 w-2 rounded-b-sm" />
+        <span aria-hidden="true" className="banda-antena absolute bottom-0 left-16 z-20 h-1.5 w-2 rounded-t-sm" />
+        <span aria-hidden="true" className="banda-antena absolute left-0 top-20 z-20 h-2 w-1.5 rounded-r-sm" />
+        <span aria-hidden="true" className="banda-antena absolute bottom-28 right-0 z-20 h-2 w-1.5 rounded-l-sm" />
+
         {/* Cara frontal */}
-        <div className="cara absolute inset-0 overflow-hidden rounded-[var(--radius-telefono)] border-[6px] border-[var(--color-carcasa)] bg-[var(--color-pantalla-apagada)] shadow-2xl">
+        <div className="cara cara-marco absolute inset-0 overflow-hidden rounded-[var(--radius-telefono)] border-[6px] border-[var(--color-carcasa)] bg-[var(--color-pantalla-apagada)]">
           <div
             aria-hidden="true"
             className="absolute left-1/2 top-2 z-30 h-6 w-24 -translate-x-1/2 rounded-full bg-[var(--color-pantalla-apagada)]"
@@ -94,7 +103,7 @@ export function Iphone({
           {children}
         </div>
 
-        <ParteTrasera />
+        <ParteTrasera linternaEncendida={linternaEncendida} />
       </div>
     </div>
   );

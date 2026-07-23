@@ -24,9 +24,18 @@ interface Props {
   /** Notificacion visible en el bloqueo; tocarla desbloquea y abre. */
   notificacion?: DatosNotificacionBloqueo | null;
   onAbrirNotificacion?: () => void;
+  /** La linterna enciende el flash de la parte trasera. */
+  linterna: boolean;
+  onAlternarLinterna: () => void;
 }
 
-export function PantallaBloqueo({ onDesbloquear, notificacion, onAbrirNotificacion }: Props) {
+export function PantallaBloqueo({
+  onDesbloquear,
+  notificacion,
+  onAbrirNotificacion,
+  linterna,
+  onAlternarLinterna,
+}: Props) {
   const inicio = useRef<{ x: number; y: number } | null>(null);
   const deslizando = useRef(false);
   const [desplazamiento, setDesplazamiento] = useState(0);
@@ -103,12 +112,25 @@ export function PantallaBloqueo({ onDesbloquear, notificacion, onAbrirNotificaci
           </div>
         )}
 
-        {/* Linterna y camara, como el lock screen de iOS (decorativos) */}
-        <div aria-hidden="true" className="flex items-center justify-between px-8">
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)] backdrop-blur">
+        {/* Linterna (enciende el flash trasero) y camara decorativa */}
+        <div className="flex items-center justify-between px-8">
+          <button
+            type="button"
+            aria-label={linterna ? 'Apagar linterna' : 'Encender linterna'}
+            aria-pressed={linterna}
+            onClick={onAlternarLinterna}
+            className={`flex h-12 w-12 items-center justify-center rounded-full backdrop-blur transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-marca-500)] ${
+              linterna
+                ? 'bg-[var(--color-lock-texto)] text-[var(--color-marca-500)]'
+                : 'bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)]'
+            }`}
+          >
             <IconoLinterna className="h-6 w-6" />
-          </span>
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)] backdrop-blur">
+          </button>
+          <span
+            aria-hidden="true"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)] backdrop-blur"
+          >
             <IconoCamaraLock className="h-6 w-6" />
           </span>
         </div>
