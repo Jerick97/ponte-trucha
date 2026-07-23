@@ -2,25 +2,25 @@
   "mcpServers": {
     "aws-docs": {
       "command": "uvx",
-      "args": ["awslabs.aws-documentation-mcp-server@latest"],
+      "args": [
+        "--from",
+        "awslabs.aws-documentation-mcp-server@latest",
+        "awslabs.aws-documentation-mcp-server.exe"
+      ],
       "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_DOCUMENTATION_PARTITION": "aws"
       },
       "disabled": false,
       "autoApprove": ["read_documentation", "search_documentation"]
     },
-    "aws-diagram": {
-      "command": "uvx",
-      "args": ["awslabs.aws-diagram-mcp-server@latest"],
-      "env": {
-        "FASTMCP_LOG_LEVEL": "ERROR"
-      },
-      "disabled": false,
-      "autoApprove": []
-    },
     "aws-billing": {
       "command": "uvx",
-      "args": ["awslabs.billing-cost-management-mcp-server@latest"],
+      "args": [
+        "--from",
+        "awslabs.billing-cost-management-mcp-server@latest",
+        "awslabs.billing-cost-management-mcp-server.exe"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
@@ -29,7 +29,11 @@
     },
     "aws-iac": {
       "command": "uvx",
-      "args": ["awslabs.aws-iac-mcp-server@latest"],
+      "args": [
+        "--from",
+        "awslabs.aws-iac-mcp-server@latest",
+        "awslabs.aws-iac-mcp-server.exe"
+      ],
       "env": {
         "FASTMCP_LOG_LEVEL": "ERROR"
       },
