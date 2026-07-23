@@ -16,6 +16,9 @@ import { HomeScreen } from './components/telefono/HomeScreen';
 import { StatusBar } from './components/telefono/StatusBar';
 import { VistaApp } from './components/apps/VistaApp';
 import { WhatsAppApp } from './components/apps/whatsapp/WhatsAppApp';
+import { DiscordApp } from './components/apps/discord/DiscordApp';
+import { reproducirSonidoDc } from './components/apps/discord/sonidosDc';
+import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
 import { Burbuja } from './components/Burbuja';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
@@ -43,6 +46,18 @@ export default function App() {
   const chat = usePartida((s) => s.chat);
   const chatCargando = usePartida((s) => s.chatCargando);
   const escenario = usePartida((s) => s.escenarioActual());
+
+  // Suena la alerta cada vez que llega un mensaje nuevo del escenario
+  // (tambien con el telefono bloqueado, como en un celular real). Discord
+  // y WhatsApp usan su tono propio; el resto, el del sistema.
+  const idEscenario = escenario?.id;
+  const canalEscenario = escenario?.canal;
+  useEffect(() => {
+    if (fase !== 'mensaje' || !idEscenario) return;
+    if (canalEscenario === 'discord') reproducirSonidoDc('ping');
+    else if (canalEscenario === 'whatsapp') reproducirSonidoWa('notificacion');
+    else reproducirSonido('notificacion');
+  }, [fase, idEscenario, canalEscenario]);
 
   const iniciar = usePartida((s) => s.iniciar);
   const responderEscenario = usePartida((s) => s.responderEscenario);
@@ -78,6 +93,23 @@ export default function App() {
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
 
   function contenidoApp(app: AppSimulada) {
+    if (app.id === 'discord') {
+      return (
+        <DiscordApp
+          escenario={appDelEscenario?.id === 'discord' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
     if (app.id === 'whatsapp') {
       return (
         <WhatsAppApp

@@ -7,7 +7,7 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Camera, Mic, Paperclip, SendHorizontal, Smile } from 'lucide-react';
-import { TecladoWa } from './TecladoWa';
+import { Teclado } from '../Teclado';
 
 interface Props {
   /** Solo en la fase de chat se puede escribir de verdad. */
@@ -62,7 +62,8 @@ export function ComposerWa({ habilitado, cargando = false, onEnviar }: Props) {
       </form>
 
       {habilitado && conTeclado && (
-        <TecladoWa
+        <Teclado
+          claseAcento="text-[var(--color-wa-verde)]"
           onTexto={(texto) => setBorrador((previo) => (previo + texto).slice(0, 120))}
           onBorrar={() => setBorrador((previo) => previo.slice(0, -1))}
           onEnviar={enviar}

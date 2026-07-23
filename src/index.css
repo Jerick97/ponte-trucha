@@ -56,6 +56,24 @@
   --color-wa-burbuja-salida: #005c4b;
   --color-wa-check: #53bdeb;
 
+  /* Discord oscuro (colores del tema dark movil 2026) */
+  --color-dc-rail: #101116;
+  --color-dc-fondo: #16171c;
+  --color-dc-superficie: #212228;
+  --color-dc-superficie-alta: #2b2c33;
+  --color-dc-texto: #e3e5e8;
+  --color-dc-texto-suave: #86888f;
+  --color-dc-blurple: #5865f2;
+  --color-dc-verde: #23a55a;
+  --color-dc-rojo: #f23f43;
+  --color-dc-celeste: #00b3f5;
+
+  /* Teclado del sistema (compartido por todas las apps oscuras) */
+  --color-teclado-fondo: #131519;
+  --color-teclado-tecla: #26282e;
+  --color-teclado-texto: #e6e7e9;
+  --color-teclado-texto-suave: #9aa0a6;
+
   /* Apps simuladas (par icono / fondo de pantalla interna) */
   --color-app-whatsapp: #1da851;
   --color-app-whatsapp-fondo: #e9f6ee;
