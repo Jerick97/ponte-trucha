@@ -15,7 +15,7 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
 
 ### Fase 1: Lógica pura del teléfono (TDD)
 
-- [ ] 1. Máquina de estados del teléfono
+- [x] 1. Máquina de estados del teléfono
   - Escribir `src/test/maquinaTelefono.test.ts` primero y verlo en rojo:
     encendido normal y con `saltarAnimacion`, desbloqueo, bloqueo que conserva
     `appAbierta`, giro ortogonal, eventos ignorados fuera de estado
