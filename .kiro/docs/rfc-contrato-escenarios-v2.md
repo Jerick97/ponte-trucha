@@ -1,10 +1,17 @@
 # RFC: Rediseño del contrato de escenarios y el motor de juego
 
 > **Estado:** EN DISCUSIÓN — no implementado, no aprobado.
+> **Dirección elegida:** Opción B (evolución aditiva). Ver §9 y §10.
 > **Rama sugerida:** `rfc/contrato-escenarios-v2`
 > **Autores:** propuesta del equipo + revisión asistida (Kiro).
 > **Áreas que deben validar:** Arquitectura (Francis) y Front (Jerick), con Contenido (Clau) para el banco.
-> **Specs relacionadas (ya implementadas):** `banco-escenarios`, `loop-de-juego`, `estafador-conversacional`.
+> **Specs relacionadas (ya implementadas):** `banco-escenarios`, `loop-de-juego`, `estafador-conversacional`, `interfaz-telefono`.
+
+> **Nota (actualización):** las §1–§8 son el análisis original de la propuesta.
+> La §9 documenta el avance de Jerick (`interfaz-telefono`, ya en `main`) y la
+> §10 concreta el plan de enriquecimiento aditivo que el equipo decidió seguir:
+> **enriquecer sin romper**. Si hay conflicto entre §2 (propuesta original) y §10,
+> manda la §10.
 
 ## 1. Para qué sirve este documento
 
@@ -288,3 +295,93 @@ nuevo como v2 con un adaptador que lo traduce al actual; migrar el banco gradual
    (probablemente una spec nueva `contrato-escenarios-v2`, o updates a las 3 specs
    existentes).
 5. Recién entonces pasar a implementación.
+
+## 9. Avance de Jerick: la spec `interfaz-telefono` (ya en `main`)
+
+Después de escribir §1–§8, Jerick mergeó a `main` la spec `interfaz-telefono`,
+que reconstruyó toda la capa de presentación. Esto cambia el cálculo de riesgo
+de la §6.
+
+### 9.1 Qué construyó (verificado en el repo)
+
+- **iPhone simulado completo**: animación de encendido, pantalla de bloqueo,
+  parte trasera al girar, home con grid de apps y status bar. Todo sobre una
+  máquina de estados pura (`src/components/telefono/maquina.ts`, reducer sin React).
+- **5 apps mapeadas a los 5 canales del contrato**: WhatsApp, Mensajes (`sms`),
+  Discord, Gmail (`correo`) y Roblox (`chat-juego`). El mapeo
+  `appPorCanal()` (`src/components/telefono/apps.ts`) es **total por
+  construcción**: hay un test de exhaustividad que falla en compilación si el
+  contrato agrega un canal sin app registrada.
+- **La partida ocurre dentro de la app**: el escenario llega como notificación en
+  el lock/home, el niño la abre, decide, ve el feedback con señales resaltadas y,
+  si el escenario lo permite, chatea con el estafador — sin salir de la app.
+- **WhatsApp como ejemplo completo** (`src/components/apps/whatsapp/`): lista de
+  chats con contactos mock (familia y amigos, avatares locales, sin llamadas
+  externas) y la conversación del escenario donde vive el loop. El HUD (ronda,
+  puntaje, racha) queda visible.
+
+### 9.2 Cómo consume el contrato (clave para el plan)
+
+- La conversación pinta `escenario.mensaje` como **una sola burbuja entrante**
+  (`BurbujaWa texto={escenario.mensaje}`). Las burbujas múltiples solo aparecen en
+  la fase `chat`, con los turnos del LLM. **No** hay hoy una mini-conversación
+  previa a la decisión.
+- Usa los **5 canales en kebab-case** existentes, con mapeo total + test de
+  exhaustividad.
+- Su **Requisito 10** es explícito: la reconstrucción **no** modifica `src/game/`,
+  el store, el LLM ni los tipos; los componentes reciben datos por props desde
+  `App.tsx`. La única extensión de contrato permitida fue **aditiva**: campos
+  opcionales de dirección y asunto para el canal `correo`, coordinados con Clau.
+
+### 9.3 Consecuencia para la §6
+
+La **Opción A (reemplazo completo)** deja de ser solo "arriesgada": ahora sería
+**destructiva**, porque rompería WhatsApp, las notificaciones y las 5 apps recién
+probadas y en verde. En la práctica, el Requisito 10 de `interfaz-telefono` ya es
+un voto del equipo por la vía aditiva. **Este RFC adopta la Opción B.**
+
+## 10. Plan de enriquecimiento aditivo (dirección elegida)
+
+**Principio rector:** todo campo o función nueva es **opcional y con fallback** a
+lo actual. Un escenario que no use lo nuevo se ve y se comporta igual que hoy, y
+los tests existentes de motor y guardrails siguen en verde. Es la misma regla que
+ya aplicó Jerick al extender `correo`.
+
+**Resolución del conflicto §5.1:** este plan **no** adopta "el system prompt viaja
+desde el cliente". La Lambda **sigue** reconstruyendo su propio system prompt de
+forma independiente (`infra/lambda/estafador/index.mjs`). La doble capa de
+contención de `seguridad-infantil.md` se mantiene intacta.
+
+### 10.1 Fase 1 — no toca la UI de Jerick
+
+| Enriquecimiento | Dónde | Por qué no rompe |
+|---|---|---|
+| `revisarMensajeDelNino()` — filtro de **entrada** del niño antes de enviar al modelo (contraseña, teléfono, dirección, colegio, código) | `src/llm/guardrails.ts` + llamada en el store antes de `obtenerProveedor()` | Solo agrega un chequeo; cierra un hueco real (hoy la entrada del niño no se filtra) |
+| **Bonus de velocidad, sumado** (no multiplicador) | `responder(estado, escenario, veredicto, ms?)` con `ms` **opcional** | Si `ms` no llega, el puntaje es idéntico al actual: los tests del motor no cambian |
+| **Bonus por resistir al estafador** (+150) | Store marca "resistió" (el niño corta / dice que no) + término nuevo en el resultado | El chat de Jerick ya tiene "Cortar la conversación" y `chatAgotado`; solo falta capturar el desenlace |
+| Insignia **"Modo desconfiado"** (legítimos marcados como trampa) | Contador derivado de `resultados` en el resultado final | No cambia el cálculo de nivel actual; es una insignia extra |
+| `titulo?` opcional en `SenalDelatora` | `src/types/escenario.ts` + schema | Campo opcional; el resaltado actual funciona sin él |
+| `feedbackAcierto?` / `feedbackError?` opcionales por escenario | `src/types/escenario.ts` + schema | Con fallback al texto por tono actual si el escenario no los define |
+
+### 10.2 Fase 2 — aditiva pero coordinada con Jerick
+
+| Enriquecimiento | Reencuadre aditivo | Coordinación |
+|---|---|---|
+| Mini-conversación antes de decidir | `mensajesPrevios?: string[]` **opcional**, pintado como burbujas **arriba** del mensaje principal; `mensaje` se mantiene | Toca `ConversacionWa` / `BurbujaWa`: lo implementa Jerick |
+| Canales nuevos | Solo los que tengan **app real** detrás, en **kebab-case** (no snake_case, para no romper el test de exhaustividad) | Cada canal nuevo = una app nueva que construye Jerick |
+
+### 10.3 Lo que este plan descarta de la propuesta original
+
+- Renombrar `tipo` → `categoria` y agregar `esEstafa` (redundante; se conserva
+  `tipo` + `respuestaCorrecta`).
+- Reemplazar la fórmula de puntaje por la multiplicativa (se suma velocidad, no se
+  multiplica).
+- `maxTurnos` por escenario (se mantiene la constante global `MAX_TURNOS_CHAT`).
+- Los 8 canales en snake_case y "el system prompt viaja desde el cliente".
+
+### 10.4 Siguiente paso concreto
+
+Con la Fase 1 aprobada, generar una spec nueva (sugerido: `enriquecimiento-aditivo`)
+con `requirements.md` en formato EARS, marcando cada requisito como aditivo y con
+su criterio de "no rompe lo existente" (tests de motor y guardrails en verde,
+UI de Jerick sin cambios en Fase 1).
