@@ -1,5 +1,9 @@
 # Guion del video — 3 minutos
 
+> **Pendiente de reescritura al terminar el backend.** No grabar ni afirmar
+> Cognito, DynamoDB, Mixpanel, Sentry o Bedrock hasta que sus tareas estén
+> verificadas. El guion actual describe el demo legado.
+
 Owner: **Clau**. Grabación con la app **desplegada**, nunca en `localhost`.
 Los criterios que este video debe tocar están en la sección 9 del brief.
 

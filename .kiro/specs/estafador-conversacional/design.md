@@ -1,5 +1,9 @@
 # Design Document: Estafador conversacional
 
+> **Diseño frontend legado.** Para el adapter IA server-side, privacidad,
+> persistencia efímera y observabilidad usar `../backend-serverless/design.md`
+> y `../../steering/seguridad-infantil.md`.
+
 ## Overview
 
 Tres proveedores intercambiables detrás de una sola interfaz. El selector prueba

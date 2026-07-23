@@ -1,5 +1,10 @@
 # Primeros pasos
 
+> Este setup corresponde al frontend actual. El backend Python y Terraform
+> todavía son arquitectura objetivo; Kiro los creará únicamente al ejecutar
+> `../specs/backend-serverless/tasks.md`. Ver la propuesta de Floci, CLI, MCP y
+> tooling en [`setup-backend.md`](setup-backend.md).
+
 Para los tres integrantes. Cinco minutos y estás corriendo el juego.
 
 ## 1. Requisitos

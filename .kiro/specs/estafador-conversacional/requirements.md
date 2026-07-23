@@ -1,5 +1,10 @@
 # Requirements Document
 
+> **Actualización de alcance:** el plan on-device se conserva; el fallback
+> server-side nuevo usa el contrato, consentimiento, Bedrock con retención cero
+> y guardrails de `../backend-serverless/`. La Lambda Mistral/Function URL queda
+> como legado hasta que Kiro ejecute la migración.
+
 > Estafador conversacional con LLM on-device
 
 ## Introduction

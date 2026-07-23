@@ -1,5 +1,8 @@
 # Implementation Plan: Interfaz del teléfono simulado
 
+> Mantener las tareas de UI vigentes. Roblox, SMS, email y WhatsApp son las apps
+> requeridas para el backend MVP; Discord no bloquea la entrega.
+
 ## Overview
 
 Owner: **Jerick** (UI). La tarea 6 (contrato y escenario de correo) toca

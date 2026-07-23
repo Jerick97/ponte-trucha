@@ -1,5 +1,9 @@
 # Design Document: Interfaz del teléfono simulado
 
+> La integración remota no debe implementarse desde este documento. Usar
+> `../backend-serverless/` para el contrato y
+> `../autenticacion-consentimiento-parental/` para onboarding/sesión.
+
 ## Overview
 
 Dos máquinas de estado independientes que se sincronizan en `App.tsx`:

@@ -1,0 +1,12 @@
+flowchart LR
+    API["API Core / IA"] --> P["Powertools"]
+    P --> CW["CloudWatch<br/>logs, métricas, traces"]
+    CW --> A["Alarmas + runbooks"]
+    API -. "excepción sanitizada" .-> S["Sentry"]
+    API -. "domain event tipado" .-> C{"Consentimiento vigente"}
+    C -->|No| N["NullAnalytics"]
+    C -->|Sí| M["Mixpanel<br/>server-side, ip=0"]
+    S -. "falla" .-> D["contador dropped"]
+    M -. "falla" .-> D
+    D --> CW
+

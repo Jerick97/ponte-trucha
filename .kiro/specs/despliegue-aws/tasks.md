@@ -1,5 +1,9 @@
 # Implementation Plan: Despliegue en AWS y entregables
 
+> **Plan legado.** No iniciar tareas pendientes de infraestructura aquí. Las
+> tareas marcadas reflejan el demo previo; la evolución está en
+> `../backend-serverless/tasks.md` y `../observabilidad-privada/tasks.md`.
+
 ## Overview
 
 Owner: **Francis** (infra), con Clau (video) y Jerick (capturas).

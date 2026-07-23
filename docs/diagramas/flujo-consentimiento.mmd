@@ -1,0 +1,16 @@
+flowchart TD
+    A["Pantalla dirigida al adulto"] --> B["Fecha procesada en memoria"]
+    B --> C{"¿Mayoría de edad?"}
+    C -->|No| D["No continuar"]
+    C -->|Sí| E["Descartar fecha"]
+    E --> F["Registro y verificación en Cognito"]
+    F --> G["Aviso de privacidad"]
+    G --> H["Core: necesario"]
+    G --> I["IA server-side: opcional"]
+    G --> J["Mixpanel: opcional y off por defecto"]
+    H --> K["Crear perfil infantil sin credenciales"]
+    I --> K
+    J --> K
+    K --> L["Jugar"]
+    L --> M["Área adulta: revocar, exportar o borrar"]
+

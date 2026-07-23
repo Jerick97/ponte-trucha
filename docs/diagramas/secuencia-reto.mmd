@@ -1,0 +1,20 @@
+sequenceDiagram
+    actor N as Niño
+    participant UI as Teléfono simulado
+    participant API as API Core
+    participant DDB as DynamoDB
+    participant IA as Generador seguro
+
+    N->>UI: desbloquea el teléfono
+    UI->>API: GET /v1/perfiles/{childId}/retos/siguiente
+    API->>DDB: ownership + consentimiento + progreso
+    API->>IA: canal, banda y dificultad
+    IA-->>API: candidato validado o fallback curado
+    API->>DDB: guardar emisión/expiración
+    API-->>UI: challengeId + contenido visible
+    UI-->>N: notificación de Roblox/SMS/email/WhatsApp
+    N->>UI: responde trampa o confiable
+    UI->>API: POST /v1/retos/{challengeId}/intentos
+    API->>DDB: transacción idempotente
+    API-->>UI: feedback + puntos + progreso
+

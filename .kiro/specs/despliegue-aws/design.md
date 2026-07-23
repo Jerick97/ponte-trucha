@@ -1,5 +1,10 @@
 # Design Document: Despliegue en AWS
 
+> **Documento histórico del primer despliegue.** Conserva lo ya construido,
+> pero su diagrama y su Lambda Node/Function URL no son la arquitectura objetivo.
+> Para trabajo nuevo usar `../backend-serverless/design.md` y
+> `.kiro/steering/arquitectura.md`.
+
 ## Overview
 
 Arquitectura mínima a propósito: un sitio estático y una función. Menos piezas

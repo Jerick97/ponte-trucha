@@ -1,5 +1,9 @@
 # Implementation Plan: Estafador conversacional
 
+> Las tareas completadas se conservan como historial. No ampliar la Lambda
+> antigua; cualquier tarea nueva de backend IA se ejecuta desde
+> `../backend-serverless/tasks.md`.
+
 ## Overview
 
 Owner: **Francis**. Es la carta de innovación del proyecto: sin esto el juego es

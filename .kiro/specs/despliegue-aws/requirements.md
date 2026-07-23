@@ -1,5 +1,11 @@
 # Requirements Document
 
+> **Alcance legado del primer demo.** La arquitectura objetivo con Cognito,
+> API Gateway, Lambdas Python, DynamoDB, observabilidad y Terraform se define en
+> `../backend-serverless/`, `../autenticacion-consentimiento-parental/` y
+> `../observabilidad-privada/`. No ejecutar nuevos cambios de esta spec que
+> contradigan esas fuentes.
+
 > Despliegue en AWS y entregables del hackathon
 
 ## Introduction

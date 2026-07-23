@@ -1,5 +1,8 @@
 # Implementation Plan: Banco de escenarios
 
+> Mantener estas tareas solo para contenido curado. Factory, DynamoDB, IA y API
+> se implementan desde `../backend-serverless/tasks.md`.
+
 ## Overview
 
 Owner: **Clau**. Es la ruta crítica del proyecto: sin contenido no hay demo.

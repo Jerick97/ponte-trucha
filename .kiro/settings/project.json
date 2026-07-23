@@ -1,9 +1,9 @@
 {
   "projectName": "Ponte Trucha Kids",
-  "projectDescription": "Web app donde ninos de 8 a 13 anos practican a detectar estafas digitales en un telefono simulado, con un estafador conversacional que corre on-device",
+  "projectDescription": "Web app donde ninos de 8 a 13 anos practican a detectar estafas digitales en un telefono simulado; la cuenta pertenece al adulto y el backend objetivo es serverless en AWS",
   "version": "0.1.0",
-  "language": "TypeScript",
-  "framework": "React 18 + Vite",
+  "language": "TypeScript + Python + HCL",
+  "framework": "React 18 + Vite / FastAPI + AWS Lambda",
   "hackathon": {
     "nombre": "Hackathon Kiro + AWS - Codigo Facilito",
     "vertical": "Aplicaciones web",
@@ -15,13 +15,16 @@
     ]
   },
   "features": [
-    "Telefono simulado con mensajes de chat, WhatsApp, SMS y Discord",
+    "Telefono simulado con retos de Roblox, WhatsApp, SMS y email",
+    "Registro e inicio de sesion del adulto con Cognito",
+    "Consentimiento versionado y perfiles infantiles sin credenciales",
     "Decision binaria: trampa o de confianza",
     "Feedback educativo con senales resaltadas",
     "Estafador conversacional con LLM on-device (Prompt API de Chrome)",
-    "Fallback a AWS Lambda + Mistral",
-    "Rachas, puntaje y nivel de trucha compartible",
-    "Banco curado de ~20 escenarios validados por hook de Kiro"
+    "Fallback seguro a AWS Lambda + Bedrock con retencion cero",
+    "Rachas, puntaje, nivel y progreso persistente",
+    "Banco curado + escenarios asistidos por IA y guardrails",
+    "Observabilidad con CloudWatch, Sentry y Mixpanel consentido"
   ],
   "technologies": [
     "React 18",
@@ -30,9 +33,13 @@
     "Tailwind CSS 4",
     "Zustand",
     "Prompt API (Gemini Nano on-device)",
-    "AWS Lambda + Mistral",
+    "Python 3.14 + FastAPI + AWS Lambda Web Adapter",
+    "Amazon Cognito + API Gateway HTTP API",
+    "AWS Lambda + DynamoDB + Bedrock",
     "AWS S3 + CloudFront",
-    "Vitest"
+    "CloudWatch + Powertools + Sentry + Mixpanel",
+    "Terraform",
+    "Vitest + pytest + terraform test"
   ],
   "team": [
     {
@@ -50,10 +57,11 @@
       "nombre": "Francis",
       "rol": "Backend / Arquitectura AWS",
       "responsabilidades": [
-        "Capa LLM: Prompt API on-device y fallback Lambda",
+        "Backend Python serverless y API OpenAPI 3.1",
+        "Cognito adulto, consentimiento y perfiles infantiles",
+        "DynamoDB, progreso, adaptacion y fallback Bedrock",
         "Guardrails de seguridad infantil en la salida del modelo",
-        "Despliegue S3 + CloudFront y Lambda Function URL",
-        "Diagrama de arquitectura y control de costos"
+        "Terraform, observabilidad y control de costos"
       ],
       "owner_de": ["src/llm", "infra", ".github/workflows"]
     },
@@ -71,6 +79,8 @@
   ],
   "developmentSetup": {
     "nodeVersion": "20+",
+    "pythonVersionTarget": "3.14",
+    "terraformTarget": "1.14+",
     "packageManager": "npm",
     "buildTool": "Vite",
     "testFramework": "Vitest",
@@ -84,7 +94,8 @@
     "src/store": "Estado global con zustand, solo orquestacion",
     "src/types": "Contratos compartidos entre las tres areas",
     "src/test": "Pruebas con Vitest",
-    "infra": "Lambda de fallback y notas de despliegue AWS",
+    "backend": "Backend Python objetivo con arquitectura hexagonal",
+    "infra": "Infraestructura AWS objetivo con Terraform; contiene fallback legado",
     "scripts": "Validador del banco de escenarios",
     ".kiro/specs": "Especificaciones por feature (requirements, design, tasks)",
     ".kiro/steering": "Guias que Kiro aplica siempre",
@@ -98,12 +109,12 @@
     "lintCommand": "npm run lint",
     "testCommand": "npm run test",
     "validateContentCommand": "npm run validar:escenarios",
-    "hosting": "S3 + CloudFront (free tier)"
+    "hosting": "S3 + CloudFront; backend serverless AWS con presupuesto y limites"
   },
   "qualityMetrics": {
     "targetCoverageLogica": "80%+ en src/game y src/llm",
     "accesibilidad": "WCAG 2.2 AA, area tactil minima 44x44",
-    "privacidad": "Cero datos personales del nino, sin login, sin analitica de menores",
-    "presupuestoAWS": "USD 0 dentro del free tier"
+    "privacidad": "Cuenta adulta; cero PII infantil; analitica opcional y consentida",
+    "presupuestoAWS": "Objetivo dentro de creditos/free tier, con presupuesto, alarmas y limites"
   }
 }

@@ -1,5 +1,9 @@
 # Design Document: Loop de juego y teléfono simulado
 
+> Diseño actual del demo. La fuente remota de retos/progreso y los estados de
+> red se agregarán únicamente al ejecutar la tarea de integración de
+> `../backend-serverless/tasks.md`.
+
 ## Overview
 
 Máquina de fases sencilla montada sobre un store de zustand. La lógica de

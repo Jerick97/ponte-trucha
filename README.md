@@ -2,204 +2,126 @@
 
 # 🐟 Ponte Trucha Kids
 
-**El juego que le enseña a los niños a no caer en estafas digitales**
+**El juego que enseña a niños de 8 a 13 años a detectar trampas digitales**
 
-Hackathon Kiro + AWS · Código Facilito · Vertical: Aplicaciones web
-
-[Demo](#) · [Video (3 min)](#) · [Arquitectura](#arquitectura)
+Hackathon Kiro + AWS · Código Facilito
 
 </div>
 
----
-
 ## Qué es
 
-Existen niños de 8 a 13 años que hoy sufren estafas dentro de sus videojuegos
-—Robux gratis, sorteos falsos, robo de cuentas— y se defienden solos, sin
-herramientas a su medida.
+Ponte Trucha Kids simula un teléfono: llega una notificación de Roblox, SMS,
+email o WhatsApp; el niño abre la app y decide si el contenido es una trampa o
+es confiable. Después recibe feedback sobre las señales, suma puntos y progresa
+en dificultad.
 
-**Ponte Trucha Kids** es una web app donde practican a detectar esas trampas en
-un teléfono simulado, con un **estafador conversacional que corre en su propio
-dispositivo**. Cada partida es distinta, se juega en segundos y enseña con la
-emoción de un juego, no con el miedo de una charla.
+La cuenta pertenece al padre, madre o tutor. El adulto completa el registro y
+los consentimientos; el niño usa un perfil sin correo, contraseña, nombre real
+ni fecha de nacimiento.
 
-## Cómo se juega
+## Estado del proyecto
 
-1. La pantalla simula un teléfono. Llegan mensajes del chat del juego, WhatsApp,
-   SMS o Discord.
-2. El niño decide: **¿trampa o de confianza?**
-3. Al responder, el juego **resalta las señales** que delataban la estafa y
-   explica la lección en lenguaje de niño.
-4. Se mezclan estafas con mensajes legítimos reales: el objetivo es que aprendan
-   a **distinguir**, no a desconfiar de todo.
-5. Al final: racha, puntaje y un **nivel de trucha** compartible.
-
-### El momento wow
-
-Tras el mensaje inicial, el niño puede **responderle al estafador**. Un LLM
-improvisa como lo haría uno real: presiona, mete prisa, insiste. Vive la presión
-de la estafa sin riesgo y aprende a cortarla. Ninguna herramienta estática puede
-hacer esto.
-
-## Por qué es innovador
-
-| | |
+| Área | Estado |
 |---|---|
-| 🔒 **LLM on-device** | El estafador corre con la Prompt API de Chrome (Gemini Nano) **en el navegador del niño**. Cero latencia, cero costo por token, cero datos saliendo del dispositivo. |
-| 🛡️ **Seguridad por diseño** | Cubre estafas y fraudes; **nunca** simula acoso ni manipulación personal. Doble capa de contención: prompt acotado + filtro de salida. |
-| 🇵🇪 **Hecho para Latam** | Español latino neutro, con las estafas que existen de verdad en Roblox, Free Fire y Discord. |
-| 💸 **Costo cero** | Sitio estático en S3 + CloudFront y una Lambda de fallback. Todo dentro del free tier. |
+| Teléfono simulado y loop local | existe un demo frontend |
+| Banco curado y LLM on-device/fallback legado | existe una primera versión |
+| Cognito adulto y consentimiento | especificado; pendiente de Kiro |
+| API Python, DynamoDB y progreso remoto | especificado; pendiente de Kiro |
+| Terraform del backend | especificado; pendiente de Kiro |
+| CloudWatch, Sentry y Mixpanel | especificado; pendiente de Kiro |
 
----
+La documentación describe explícitamente la **arquitectura objetivo**. No se
+debe presentar una pieza pendiente como implementada.
 
-## Arquitectura
+## Arquitectura objetivo
 
-```
-                    ┌──────────────────────────────┐
-                    │   Navegador del niño         │
-                    │  ┌────────────────────────┐  │
-                    │  │ Gemini Nano on-device  │  │  ← plan A: nada sale de aquí
-                    │  └────────────────────────┘  │
-                    └───────┬──────────────┬───────┘
-                            │ HTTPS        │ solo si no hay plan A
-                            ▼              ▼
-                  ┌──────────────┐   ┌──────────────────┐
-                  │  CloudFront  │   │ Lambda Function  │
-                  │  (OAC, TLS)  │   │ URL (nodejs22.x) │
-                  └──────┬───────┘   └────────┬─────────┘
-                         ▼                    ▼
-                  ┌──────────────┐   ┌──────────────────┐
-                  │  S3 privado  │   │  API de Mistral  │
-                  └──────────────┘   └──────────────────┘
-```
+[![Arquitectura serverless de Ponte Trucha Kids](docs/diagramas/arquitectura-backend.svg)](docs/diagramas/arquitectura-backend.svg)
 
-**Stack:** React 18 · TypeScript · Vite 6 · Tailwind 4 · Zustand · Vitest
-**AWS:** S3 · CloudFront · Lambda
+- React/Vite en S3 privado + CloudFront.
+- Cognito para la cuenta adulta.
+- API Gateway HTTP API con JWT authorizer.
+- Lambdas Python 3.14 + FastAPI + AWS Lambda Web Adapter.
+- DynamoDB; no RDS.
+- Sin EC2, VPC ni NAT Gateway en el MVP.
+- LLM on-device como plan A y Bedrock con retención cero como fallback.
+- CloudWatch/Powertools, Sentry sin PII y Mixpanel opt-in server-side.
+- Infraestructura como código con Terraform.
 
-Detalle completo en [`.kiro/steering/arquitectura.md`](.kiro/steering/arquitectura.md).
+Detalle: [arquitectura](.kiro/steering/arquitectura.md) ·
+[PRD de backend](.kiro/docs/prd-backend-serverless.md) ·
+[observabilidad](.kiro/docs/observabilidad-y-privacidad.md) ·
+[setup local/Kiro](.kiro/docs/setup-backend.md) ·
+[costos/free tier](.kiro/docs/costos-aws.md).
 
-## Estructura del proyecto
+## Privacidad infantil
 
-```
-ponte-trucha/
-├── .kiro/                    # Todo lo que Kiro usa para construir el proyecto
-│   ├── specs/                #   4 features: requirements + design + tasks
-│   ├── steering/             #   Guías que Kiro aplica siempre
-│   ├── hooks/                #   Automatizaciones (validación, tono, seguridad)
-│   ├── skills/               #   Skills propias del proyecto
-│   ├── settings/             #   Metadatos del proyecto y MCP de AWS
-│   └── docs/                 #   Plan de 7 días, guion del video, despliegue
-├── src/
-│   ├── components/           # UI pura, sin reglas de juego
-│   ├── game/                 # Lógica pura: puntaje, rondas, nivel de trucha
-│   ├── llm/                  # Estafador: proveedores, prompts, guardrails
-│   ├── data/                 # Banco de escenarios + esquema JSON
-│   ├── store/                # Orquestación (zustand)
-│   ├── types/                # Contratos compartidos
-│   └── test/                 # Vitest
-├── infra/lambda/estafador/   # Fallback del LLM
-└── scripts/                  # Validador del banco de escenarios
+- Cognito representa solo al adulto.
+- La fecha del adulto se usa como age gate y se descarta; no prueba por sí sola
+  consentimiento parental verificable.
+- El perfil infantil conserva solo alias/avatar de catálogo y banda etaria.
+- IA y analítica tienen decisiones separadas.
+- Mixpanel está apagado por defecto, sin IP/geolocalización ni texto libre.
+- Sentry elimina request, user, tokens, cuerpos y PII antes del envío.
+- El chat del niño es efímero y no se persiste.
+- El adulto puede revocar finalidades y borrar cuenta/perfiles.
+
+Antes de producción se requiere revisión legal del mecanismo de consentimiento.
+Ver [seguridad infantil](.kiro/steering/seguridad-infantil.md).
+
+## Desarrollo con Kiro
+
+```text
+requirements.md → design.md/ADR → tasks.md → test rojo
+                → implementación → refactor → verificación
 ```
 
----
+### Specs activas de backend
 
-## Cómo lo construimos con Kiro
-
-Este proyecto se desarrolla **spec-driven**: no se escribe código hasta que el
-requisito está escrito.
-
-```
-requirements.md  →  design.md  →  tasks.md  →  código
-   (EARS)            (cómo)       (checklist)
-```
-
-### Specs
-
-| Spec | Qué cubre | Owner |
+| Spec | Alcance | Owner |
 |---|---|---|
-| [`loop-de-juego`](.kiro/specs/loop-de-juego/) | Teléfono simulado, decisión, feedback, puntaje, nivel | Jerick |
-| [`banco-escenarios`](.kiro/specs/banco-escenarios/) | Contenido, esquema y pipeline de validación | Clau |
-| [`estafador-conversacional`](.kiro/specs/estafador-conversacional/) | LLM on-device, fallback y guardrails | Francis |
-| [`despliegue-aws`](.kiro/specs/despliegue-aws/) | S3, CloudFront, Lambda y entregables | Francis |
+| [autenticación y consentimiento](.kiro/specs/autenticacion-consentimiento-parental/) | adulto, Cognito, finalidades, perfiles y borrado | Francis |
+| [backend serverless](.kiro/specs/backend-serverless/) | API, DynamoDB, apps, score, adaptación, IA y Terraform | Francis |
+| [observabilidad privada](.kiro/specs/observabilidad-privada/) | CloudWatch, Sentry, Mixpanel, alarmas y privacidad | Francis |
 
-### Steering
+Las specs del demo anterior conservan historial y tienen avisos de migración.
 
-Reglas que Kiro aplica en cada edición, sin repetirlas en cada prompt:
-[estándares de código](.kiro/steering/estandares-de-codigo.md) ·
-[arquitectura](.kiro/steering/arquitectura.md) ·
-[tono infantil](.kiro/steering/tono-infantil.md) ·
-[seguridad infantil](.kiro/steering/seguridad-infantil.md)
+### Patrones
 
-### Hooks
+| Feature | Patrón |
+|---|---|
+| Apps/escenarios | Abstract Factory + Strategy |
+| Adaptación | Strategy + Specification |
+| Persistencia | Repository |
+| IA/proveedores | Ports and Adapters |
+| Guardrails | Chain of Responsibility |
+| Analítica | Domain Events + Adapter |
+| Intentos | Idempotency + transacción condicional |
+| Ciclos | Máquina de estados explícita |
 
-| Hook | Cuándo dispara | Qué hace |
-|---|---|---|
-| `validar-escenarios` | Se edita el banco | Corre el validador de contenido |
-| `revisar-tono-infantil` | Se escribe texto visible | Verifica el steering de tono antes de guardar |
-| `guardrails-intactos` | Se toca el prompt o el filtro del LLM | Bloquea cambios que debiliten la contención |
-| `lint-y-test-al-guardar` | Se edita un `.ts`/`.tsx` | ESLint + Vitest |
-| `seguridad-secrets` | Antes de un comando de shell | Escanea credenciales expuestas |
-| `resumen-al-terminar` | Al completar una tarea | Marca el `tasks.md` y dice a quién le toca seguir |
+La arquitectura es hexagonal y aplica SOLID. No se agregan patrones que no
+resuelvan una necesidad demostrada.
 
----
+## API
 
-## Cómo dividimos el trabajo
+OpenAPI 3.1 será el contrato fuente. FastAPI ofrece Swagger UI/ReDoc en local;
+la recomendación para referencia interna es Scalar sobre el mismo
+`openapi.json`. Los errores usan RFC 9457.
 
-Tres personas, tres capas que casi no se pisan. Cada quien es dueño de sus
-carpetas y de sus specs.
+Ver [estrategia de documentación API](.kiro/docs/documentacion-api.md).
 
-### 🎨 Jerick — Frontend y experiencia
+## Plan
 
-**Carpetas:** `src/components/`, `src/index.css`, `index.html`
-**Spec:** `loop-de-juego`
+El orden completo está en [plan Kiro](.kiro/docs/plan-7-dias.md):
 
-- Teléfono simulado y sistema de burbujas con resaltado de señales
-- Máquina de pantallas: inicio → mensaje → feedback → chat → resultado
-- Design tokens, tratamiento visual por canal (WhatsApp, Discord, SMS…)
-- Accesibilidad, responsive móvil y peso del bundle
-- Capturas y GIF para el README
+1. ADR, threat model, access patterns y OpenAPI.
+2. Setup Python/Terraform con TDD.
+3. Cognito, consentimiento y perfiles.
+4. Retos, intentos, progreso y adaptación.
+5. Infraestructura `dev`.
+6. Observabilidad y revisión de privacidad.
+7. Integración, seguridad y lanzamiento.
 
-**Por qué:** es la cara del producto y lo que se ve durante 90 segundos del
-video. El pulido visual es lo que separa un demo de hackathon de un producto.
-
-### ⚙️ Francis — Backend, LLM y AWS
-
-**Carpetas:** `src/llm/`, `infra/`
-**Specs:** `estafador-conversacional`, `despliegue-aws`
-
-- Capa LLM: Prompt API on-device (plan A) + Lambda con Mistral (plan B)
-- Guardrails de seguridad infantil sobre la salida del modelo
-- S3 + CloudFront con OAC, script de despliegue, control de costos
-- Diagrama de arquitectura y revisión de seguridad final
-
-**Por qué:** es la parte de arquitectura pura y la que sostiene los criterios de
-innovación (30 %) y uso de AWS (10 %).
-
-### 🎯 Clau — PM, contenido y lógica de negocio
-
-**Carpetas:** `src/data/`, `src/game/`
-**Spec:** `banco-escenarios`
-
-- Banco de ~20 escenarios: las estafas reales del mundo gamer, en voz de niño
-- Reglas del juego: puntaje, rachas, cortes del nivel de trucha
-- Tono infantil y límites de seguridad del producto (steering)
-- Guion del video, narrativa del pitch y coordinación del plan de 7 días
-- Playtest con un niño real antes de la entrega
-
-**Por qué:** el contenido **es** el producto. Y las dinámicas de juego —qué
-premia, qué castiga, cómo se siente fallar— definen si un niño aprende o se
-frustra.
-
-### Zonas compartidas
-
-`src/types/`, `src/store/` y `src/App.tsx` los toca cualquiera, pero **se avisa
-antes**. Son el pegamento entre las tres capas.
-
-Plan día por día: [`.kiro/docs/plan-7-dias.md`](.kiro/docs/plan-7-dias.md).
-
----
-
-## Empezar
+## Proyecto actual
 
 ```bash
 npm install
@@ -207,42 +129,34 @@ cp .env.example .env.local
 npm run dev
 ```
 
-| Comando | Qué hace |
+| Comando | Uso |
 |---|---|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Build estático para S3 |
-| `npm run lint` | ESLint |
-| `npm run test` | Vitest (lógica pura y guardrails) |
-| `npm run validar:escenarios` | Valida el banco de contenido |
+| `npm run lint` | lint frontend |
+| `npm run test` | tests frontend |
+| `npm run validar:escenarios` | valida banco curado |
+| `npm run build` | build estático |
 
-Guía completa: [`.kiro/docs/primeros-pasos.md`](.kiro/docs/primeros-pasos.md).
+Los comandos Python y Terraform se agregarán únicamente al ejecutar las tareas
+de setup; hoy no se afirma que estén disponibles.
 
----
+## Equipo
 
-## Seguridad infantil
+- **Jerick:** frontend y experiencia.
+- **Francis:** backend, IA e infraestructura AWS.
+- **Clau:** producto, contenido y reglas del juego.
 
-Es un producto para menores, así que los límites son explícitos y son una
-fortaleza del diseño, no una limitación:
+`src/types/`, `src/store/` y `src/App.tsx` son compartidos. Toda integración de
+backend debe avisar antes a Jerick; cambios de escenarios/score se coordinan con
+Clau.
 
-- El juego cubre **estafas y fraudes**; nunca simula acosadores ni manipulación
-  personal.
-- El LLM corre **on-device**: ningún dato del niño sale del navegador.
-- **Sin login, sin nombre, sin correo, sin analítica.** Nada que recolectar.
-- Doble capa de contención: prompt acotado + filtro de salida independiente.
-- El estafador **se rinde** si el niño se niega o dice que le contará a un adulto:
-  enseñamos que cortar funciona.
+## Skills de Kiro
 
-Detalle en [`.kiro/steering/seguridad-infantil.md`](.kiro/steering/seguridad-infantil.md).
+`.kiro/skills/` contiene skills del proyecto y las guías auditadas para:
 
-## Roadmap (fuera del MVP)
+- backend AWS serverless de Ponte Trucha;
+- estilo y pruebas de Terraform;
+- auditoría de seguridad no intrusiva;
+- escenarios, pantallas y despliegue legado.
 
-Dificultad adaptativa · Leaderboard · Generación semanal de escenarios con Kiro ·
-Modo para docentes
-
----
-
-<div align="center">
-
-**Ponernos trucha desde niños, para no caer de grandes.**
-
-</div>
+Las copias se mantienen sincronizadas con `.agents/skills/`. La procedencia y el
+commit de cada skill externa están documentados dentro de su carpeta.
