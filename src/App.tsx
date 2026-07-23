@@ -17,6 +17,7 @@ import { StatusBar } from './components/telefono/StatusBar';
 import { VistaApp } from './components/apps/VistaApp';
 import { WhatsAppApp } from './components/apps/whatsapp/WhatsAppApp';
 import { DiscordApp } from './components/apps/discord/DiscordApp';
+import { MensajesApp } from './components/apps/mensajes/MensajesApp';
 import { reproducirSonidoDc } from './components/apps/discord/sonidosDc';
 import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
 import { Burbuja } from './components/Burbuja';
@@ -93,6 +94,23 @@ export default function App() {
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
 
   function contenidoApp(app: AppSimulada) {
+    if (app.id === 'mensajes') {
+      return (
+        <MensajesApp
+          escenario={appDelEscenario?.id === 'mensajes' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
     if (app.id === 'discord') {
       return (
         <DiscordApp

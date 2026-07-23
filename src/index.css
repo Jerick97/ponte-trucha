@@ -68,6 +68,17 @@
   --color-dc-rojo: #f23f43;
   --color-dc-celeste: #00b3f5;
 
+  /* Mensajes de iOS 18, tema claro (colores del sistema de Apple) */
+  --color-sms-fondo: #ffffff;
+  --color-sms-superficie: #f2f2f7;
+  --color-sms-burbuja-entrante: #e9e9eb;
+  --color-sms-burbuja-propia: #34c759;
+  --color-sms-texto: #000000;
+  --color-sms-texto-suave: #8e8e93;
+  --color-sms-azul: #007aff;
+  --color-sms-avatar-arriba: #a7adba;
+  --color-sms-avatar-abajo: #858c9b;
+
   /* Teclado del sistema (compartido por todas las apps oscuras) */
   --color-teclado-fondo: #131519;
   --color-teclado-tecla: #26282e;
