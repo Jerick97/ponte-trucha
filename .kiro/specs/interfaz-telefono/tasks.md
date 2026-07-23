@@ -22,7 +22,7 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
   - Implementar `src/components/telefono/maquina.ts` hasta verde
   - _Requisitos: 1.2, 1.4, 1.5, 2.2, 2.3, 2.4, 3.1, 3.2, 3.3, 10.4_
 
-- [ ] 2. Registro de apps y mapeo canal→app
+- [x] 2. Registro de apps y mapeo canal→app
   - Escribir `src/test/apps.test.ts` primero: `appPorCanal` total sobre todos
     los valores de `CanalMensaje`, sin ids duplicados, orden estable del grid
   - Implementar `src/components/telefono/apps.ts` hasta verde
