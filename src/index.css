@@ -40,6 +40,9 @@
   --color-lock-texto: #ffffff;
   --color-notificacion-fondo: #f5f6fb;
 
+  /* Acentos del sistema simulado */
+  --color-musica: #1ed760;
+
   /* Apps simuladas (par icono / fondo de pantalla interna) */
   --color-app-whatsapp: #1da851;
   --color-app-whatsapp-fondo: #e9f6ee;
@@ -116,6 +119,23 @@
 }
 .animar-arranque {
   animation: arranque-carcasa 1.2s ease-out both;
+}
+
+/* La isla dinamica se expande para avisar (modo silencio, como en iOS). */
+@keyframes isla-aviso {
+  0%,
+  100% {
+    transform: scaleX(0.45);
+    opacity: 0;
+  }
+  15%,
+  85% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+.isla-aviso {
+  animation: isla-aviso 2.6s ease-in-out both;
 }
 .logo-arranque {
   animation:

@@ -81,7 +81,7 @@ export function HomeScreen({ notificacion, hud, onAbrirApp }: Props) {
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-lock-texto)]" />
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-lock-texto)]/40" />
         </div>
-        <div className="flex w-full items-center justify-around rounded-[1.9rem] bg-[var(--color-lock-texto)]/15 px-2 pb-1 pt-2 backdrop-blur-md">
+        <div className="flex w-full items-center justify-around rounded-[1.9rem] bg-[var(--color-lock-texto)]/15 px-3 py-3.5 backdrop-blur-md">
           {dock.map((app) => (
             <IconoApp
               key={app.id}

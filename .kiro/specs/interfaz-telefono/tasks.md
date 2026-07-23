@@ -50,41 +50,44 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
 
 ### Fase 3: Hardware del teléfono
 
-- [ ] 6. Design tokens del teléfono y las apps
+- [x] 6. Design tokens del teléfono y las apps
   - Agregar a `@theme` los tokens de carcasa, pantalla apagada, lock,
     notificación y los pares `--color-app-*` / `--color-app-*-fondo`
   - Verificar contraste 4.5:1 de cada par color/texto antes de fijarlos
   - _Requisitos: 6.5, 9.4_
 
-- [ ] 7. Carcasa `Iphone` con parte trasera y giro
+- [x] 7. Carcasa `Iphone` con parte trasera y giro
   - Bordes, notch, botones laterales, `ParteTrasera` (cámaras + logo)
   - Giro con `rotateY` + `backface-visibility`; control "Girar teléfono"
     accesible; sin animación bajo `prefers-reduced-motion`
   - _Requisitos: 1.1, 3.1, 3.2, 3.4_
 
-- [ ] 8. Encendido: `PantallaApagada` + `AnimacionArranque`
+- [x] 8. Encendido: `PantallaApagada` + `AnimacionArranque`
   - CTA "Encender" → secuencia: entra por atrás, gira, logo 🐟, zoom que
     revela el bloqueo; `FIN_ANIMACION` desde `useEffect` en `App.tsx`
   - Con `prefers-reduced-motion`: directo a bloqueado
   - _Requisitos: 1.2, 1.3, 1.4, 1.5, 9.3_
 
-- [ ] 9. `PantallaBloqueo` y botón lateral de bloqueo
+- [x] 9. `PantallaBloqueo` y botón lateral de bloqueo
   - Hora y fecha simuladas; desbloqueo por arrastre **y** botón con `Tab`
   - Botón lateral de la carcasa bloquea (`aria-label`); sin audio externo
+  - Widgets de un vistazo (clima simulado, avisos, música) y reproductor
+    que autodetecta pistas locales en `src/assets/audio` (pedido del equipo,
+    inspirado en el CodePen xxjpgbg de mr-zouraiz123)
   - _Requisitos: 2.1, 2.2, 2.3, 2.5, 9.5_
 
-- [ ] 10. `StatusBar`
+- [x] 10. `StatusBar`
   - Hora, señal y batería simuladas, visible en toda pantalla frontal
   - _Requisitos: 4.2_
 
 ### Fase 4: Home y notificaciones
 
-- [ ] 11. `HomeScreen` con `IconoApp` y dock
+- [x] 11. `HomeScreen` con `IconoApp` y dock
   - Wallpaper con gradiente de tokens, grid desde `APPS`, badge por app,
     área táctil ≥ 44 px; app sin notificación abre en estado vacío/resuelto
   - _Requisitos: 4.1, 4.3, 4.4, 4.5_
 
-- [ ] 12. `BannerNotificacion`
+- [x] 12. `BannerNotificacion`
   - Remitente + vista previa (tarea 3); tocar banner o ícono abre la app;
     anuncio con `aria-live="polite"`; una notificación activa a la vez
   - _Requisitos: 5.1, 5.2, 5.3, 9.2_

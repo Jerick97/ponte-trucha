@@ -19,9 +19,20 @@ export function BannerNotificacion({ app, remitente, mensaje, onAbrir }: Props) 
     >
       <span
         aria-hidden="true"
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-xl ${app.claseIcono}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-xl ${
+          app.icono && app.iconoConFondo ? '' : app.claseIcono
+        }`}
       >
-        {app.glifo}
+        {app.icono ? (
+          <img
+            src={app.icono}
+            alt=""
+            draggable={false}
+            className={app.iconoConFondo ? 'h-10 w-10 rounded-xl object-cover' : 'h-6 w-6 object-contain'}
+          />
+        ) : (
+          app.glifo
+        )}
       </span>
       <span className="min-w-0">
         <span className="block text-[10px] font-semibold uppercase tracking-wide text-[var(--color-texto-suave)]">

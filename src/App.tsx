@@ -79,7 +79,7 @@ export default function App() {
       return (
         <VistaApp app={app} titulo={app.nombre} onVolver={() => despachar({ tipo: 'CERRAR_APP' })}>
           <p className="pt-8 text-center text-[var(--color-texto-suave)]">
-            No hay mensajes nuevos por aqui 🎉
+            No hay mensajes nuevos por aqui
           </p>
         </VistaApp>
       );
@@ -137,7 +137,35 @@ export default function App() {
     if (telefono.energia === 'encendiendo') {
       return <AnimacionArranque onFin={() => despachar({ tipo: 'FIN_ANIMACION' })} />;
     }
-    if (telefono.bloqueado) return <PantallaBloqueo onDesbloquear={desbloquear} />;
+    if (telefono.bloqueado) {
+      const notificacionBloqueo =
+        enPartida && fase === 'mensaje' && escenario && appDelEscenario
+          ? {
+              imagen: appDelEscenario.icono,
+              imagenConFondo: appDelEscenario.iconoConFondo,
+              claseImagen: appDelEscenario.claseIcono,
+              titulo: escenario.remitente.nombre,
+              app: appDelEscenario.nombre,
+              texto: escenario.mensaje,
+            }
+          : fase === 'inicio'
+            ? {
+                titulo: 'Ponte Trucha',
+                app: 'Ponte Trucha',
+                texto: 'Desliza hacia arriba y aprende a detectar mensajes trucha',
+              }
+            : null;
+      return (
+        <PantallaBloqueo
+          onDesbloquear={desbloquear}
+          notificacion={notificacionBloqueo}
+          onAbrirNotificacion={() => {
+            desbloquear();
+            if (appDelEscenario) despachar({ tipo: 'ABRIR_APP', app: appDelEscenario.id });
+          }}
+        />
+      );
+    }
     if (fase === 'resultado') {
       return (
         <div className="wallpaper flex h-full flex-col">
