@@ -1,19 +1,37 @@
 /**
- * Orquestador de fases. Solo decide que pantalla se ve;
- * ninguna regla de juego vive aqui.
+ * Orquestador: sincroniza la maquina del telefono (donde se ve) con las
+ * fases de la partida (que se ve). Ninguna regla de juego vive aqui.
  */
 
-import { MarcoTelefono } from './components/MarcoTelefono';
+import { useEffect, useReducer } from 'react';
+import { ESTADO_INICIAL, transicion } from './components/telefono/maquina';
+import { precargarIconos } from './components/telefono/precargarIconos';
+import { APPS, appPorCanal, type AppSimulada } from './components/telefono/apps';
+import { Iphone } from './components/telefono/Iphone';
+import { PantallaApagada } from './components/telefono/PantallaApagada';
+import { AnimacionArranque } from './components/telefono/AnimacionArranque';
+import { PantallaBloqueo } from './components/telefono/PantallaBloqueo';
+import { HomeScreen } from './components/telefono/HomeScreen';
+import { StatusBar } from './components/telefono/StatusBar';
+import { VistaApp } from './components/apps/VistaApp';
 import { Burbuja } from './components/Burbuja';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
 import { ChatEstafador } from './components/ChatEstafador';
-import { PantallaInicio } from './components/PantallaInicio';
-import { PantallaResultado } from './components/PantallaResultado';
 import { Hud } from './components/Hud';
+import { PantallaResultado } from './components/PantallaResultado';
 import { MAX_TURNOS_CHAT, usePartida } from './store/usePartida';
 
+function prefiereMenosMovimiento(): boolean {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
+}
+
 export default function App() {
+  const [telefono, despachar] = useReducer(transicion, ESTADO_INICIAL);
+
+  // Los iconos se descargan mientras el nino ve la pantalla apagada.
+  useEffect(precargarIconos, []);
+
   const fase = usePartida((s) => s.fase);
   const partida = usePartida((s) => s.partida);
   const ronda = usePartida((s) => s.ronda);
@@ -30,74 +48,132 @@ export default function App() {
   const reiniciar = usePartida((s) => s.reiniciar);
   const nivelFinal = usePartida((s) => s.nivelFinal);
 
-  if (fase === 'inicio') {
-    return (
-      <MarcoTelefono titulo="Ponte Trucha Kids" avatar="🐟">
-        <PantallaInicio onJugar={iniciar} />
-      </MarcoTelefono>
-    );
-  }
+  const enPartida = fase === 'mensaje' || fase === 'feedback' || fase === 'chat';
+  const appDelEscenario = enPartida && escenario ? appPorCanal(escenario.canal) : null;
+  const appAbierta = APPS.find((app) => app.id === telefono.appAbierta) ?? null;
 
-  if (fase === 'resultado') {
-    return (
-      <MarcoTelefono titulo="Resultado" avatar="🏁">
-        <PantallaResultado partida={partida} nivel={nivelFinal()} onReiniciar={reiniciar} />
-      </MarcoTelefono>
-    );
-  }
+  const desbloquear = () => {
+    despachar({ tipo: 'DESBLOQUEAR' });
+    if (fase === 'inicio') iniciar();
+  };
+  const avanzar = () => {
+    despachar({ tipo: 'CERRAR_APP' });
+    siguiente();
+  };
+  const jugarOtraVez = () => {
+    despachar({ tipo: 'CERRAR_APP' });
+    reiniciar();
+    iniciar();
+  };
 
-  if (!escenario) return null;
+  const hud = enPartida && fase !== 'chat' ? (
+    <Hud ronda={indice + 1} totalRondas={ronda.length} puntaje={partida.puntaje} racha={partida.racha} />
+  ) : undefined;
 
   const ultimoResultado = partida.resultados[partida.resultados.length - 1];
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
 
-  if (fase === 'chat') {
+  function contenidoApp(app: AppSimulada) {
+    const conMensaje = appDelEscenario?.id === app.id && escenario;
+    if (!conMensaje) {
+      return (
+        <VistaApp app={app} titulo={app.nombre} onVolver={() => despachar({ tipo: 'CERRAR_APP' })}>
+          <p className="pt-8 text-center text-[var(--color-texto-suave)]">
+            No hay mensajes nuevos por aqui 🎉
+          </p>
+        </VistaApp>
+      );
+    }
     return (
-      <MarcoTelefono
+      <VistaApp
+        app={app}
         titulo={escenario.remitente.nombre}
-        subtitulo="en línea"
+        subtitulo={
+          fase === 'chat'
+            ? 'en linea'
+            : escenario.remitente.verificado
+              ? 'cuenta “verificada”'
+              : 'desconocido'
+        }
         avatar={escenario.remitente.avatar}
+        onVolver={() => despachar({ tipo: 'CERRAR_APP' })}
       >
-        <Burbuja texto={escenario.mensaje} />
-        <ChatEstafador
-          turnos={chat}
-          cargando={chatCargando}
-          agotado={turnosDelNino >= MAX_TURNOS_CHAT}
-          onEnviar={enviarMensajeAlEstafador}
-          onTerminar={siguiente}
+        {hud}
+        <Burbuja
+          texto={escenario.mensaje}
+          senalesResaltadas={fase === 'feedback' ? escenario.senales : undefined}
         />
-      </MarcoTelefono>
+        {fase === 'mensaje' && <BarraDecision onResponder={responderEscenario} />}
+        {fase === 'feedback' && ultimoResultado && (
+          <TarjetaFeedback
+            escenario={escenario}
+            acerto={ultimoResultado.acerto}
+            puntosGanados={ultimoResultado.puntosGanados}
+            onChatear={abrirChat}
+            onSiguiente={avanzar}
+          />
+        )}
+        {fase === 'chat' && (
+          <ChatEstafador
+            turnos={chat}
+            cargando={chatCargando}
+            agotado={turnosDelNino >= MAX_TURNOS_CHAT}
+            onEnviar={enviarMensajeAlEstafador}
+            onTerminar={avanzar}
+          />
+        )}
+      </VistaApp>
+    );
+  }
+
+  function pantalla() {
+    if (telefono.energia === 'apagado') {
+      return (
+        <PantallaApagada
+          onEncender={() => despachar({ tipo: 'ENCENDER', saltarAnimacion: prefiereMenosMovimiento() })}
+        />
+      );
+    }
+    if (telefono.energia === 'encendiendo') {
+      return <AnimacionArranque onFin={() => despachar({ tipo: 'FIN_ANIMACION' })} />;
+    }
+    if (telefono.bloqueado) return <PantallaBloqueo onDesbloquear={desbloquear} />;
+    if (fase === 'resultado') {
+      return (
+        <div className="wallpaper flex h-full flex-col">
+          <StatusBar claro />
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <PantallaResultado partida={partida} nivel={nivelFinal()} onReiniciar={jugarOtraVez} />
+          </div>
+        </div>
+      );
+    }
+    if (appAbierta) return contenidoApp(appAbierta);
+    return (
+      <HomeScreen
+        notificacion={
+          fase === 'mensaje' && escenario && appDelEscenario
+            ? { app: appDelEscenario, remitente: escenario.remitente.nombre, mensaje: escenario.mensaje }
+            : null
+        }
+        hud={hud}
+        onAbrirApp={(app) => despachar({ tipo: 'ABRIR_APP', app: app.id })}
+      />
     );
   }
 
   return (
-    <MarcoTelefono
-      titulo={escenario.remitente.nombre}
-      subtitulo={escenario.remitente.verificado ? 'cuenta “verificada”' : 'desconocido'}
-      avatar={escenario.remitente.avatar}
-      pie={fase === 'mensaje' ? <BarraDecision onResponder={responderEscenario} /> : undefined}
-    >
-      <Hud
-        ronda={indice + 1}
-        totalRondas={ronda.length}
-        puntaje={partida.puntaje}
-        racha={partida.racha}
-      />
-
-      <Burbuja
-        texto={escenario.mensaje}
-        senalesResaltadas={fase === 'feedback' ? escenario.senales : undefined}
-      />
-
-      {fase === 'feedback' && ultimoResultado && (
-        <TarjetaFeedback
-          escenario={escenario}
-          acerto={ultimoResultado.acerto}
-          puntosGanados={ultimoResultado.puntosGanados}
-          onChatear={abrirChat}
-          onSiguiente={siguiente}
-        />
-      )}
-    </MarcoTelefono>
+    <div className="h-full py-2">
+      <Iphone
+        girado={telefono.girado}
+        arrancando={telefono.energia === 'encendiendo'}
+        puedeGirar={telefono.energia === 'encendido'}
+        puedeBloquear={telefono.energia === 'encendido' && !telefono.bloqueado}
+        onGirar={() => despachar({ tipo: 'GIRAR' })}
+        onBloquear={() => despachar({ tipo: 'BLOQUEAR' })}
+      >
+        {pantalla()}
+      </Iphone>
+    </div>
   );
 }
