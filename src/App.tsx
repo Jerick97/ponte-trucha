@@ -15,6 +15,7 @@ import { PantallaBloqueo } from './components/telefono/PantallaBloqueo';
 import { HomeScreen } from './components/telefono/HomeScreen';
 import { StatusBar } from './components/telefono/StatusBar';
 import { VistaApp } from './components/apps/VistaApp';
+import { WhatsAppApp } from './components/apps/whatsapp/WhatsAppApp';
 import { Burbuja } from './components/Burbuja';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
@@ -77,6 +78,23 @@ export default function App() {
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
 
   function contenidoApp(app: AppSimulada) {
+    if (app.id === 'whatsapp') {
+      return (
+        <WhatsAppApp
+          escenario={appDelEscenario?.id === 'whatsapp' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
     const conMensaje = appDelEscenario?.id === app.id && escenario;
     if (!conMensaje) {
       return (

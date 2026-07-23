@@ -44,6 +44,18 @@
   --color-musica: #1ed760;
   --color-flash: #fff291;
 
+  /* WhatsApp oscuro (colores oficiales del tema dark de Android) */
+  --color-wa-fondo: #0b141a;
+  --color-wa-superficie: #1f2c34;
+  --color-wa-superficie-alta: #233138;
+  --color-wa-texto: #e9edef;
+  --color-wa-texto-suave: #8696a0;
+  --color-wa-verde: #00a884;
+  --color-wa-badge: #1daa61;
+  --color-wa-chip-activo: #103529;
+  --color-wa-burbuja-salida: #005c4b;
+  --color-wa-check: #53bdeb;
+
   /* Apps simuladas (par icono / fondo de pantalla interna) */
   --color-app-whatsapp: #1da851;
   --color-app-whatsapp-fondo: #e9f6ee;
@@ -84,6 +96,14 @@
 }
 .cara-trasera {
   transform: rotateY(180deg);
+}
+
+/* Los telefonos no muestran barra de scroll: se oculta sin perder scroll. */
+.sin-scrollbar {
+  scrollbar-width: none;
+}
+.sin-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* --- Acabado fisico de la carcasa (grosor y espalda) ----------------- */

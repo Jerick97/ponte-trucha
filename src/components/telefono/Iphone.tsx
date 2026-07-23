@@ -71,7 +71,7 @@ export function Iphone({
             type="button"
             aria-label="Bloquear telefono"
             onClick={onBloquear}
-            className="absolute -right-3 top-32 z-20 flex w-6 items-center justify-start py-6"
+            className="absolute -right-4 top-32 z-20 flex w-4 items-center justify-start py-6"
           >
             <span className="h-16 w-1.5 rounded-full bg-[var(--color-carcasa-borde)]" />
           </button>
