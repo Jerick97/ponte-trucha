@@ -28,7 +28,7 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
   - Implementar `src/components/telefono/apps.ts` hasta verde
   - _Requisitos: 4.3, 5.2, 10.4_
 
-- [ ] 3. Vista previa del banner de notificación
+- [x] 3. Vista previa del banner de notificación
   - Escribir `src/test/vistaPrevia.test.ts` primero: recorte ≤ 80 caracteres,
     corte en límite de palabra, elipsis, mensajes cortos intactos
   - Implementar `src/components/telefono/vistaPrevia.ts` hasta verde
