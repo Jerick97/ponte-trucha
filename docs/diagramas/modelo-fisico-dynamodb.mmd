@@ -1,0 +1,55 @@
+flowchart TB
+    TOKEN["Access token adulto validado"] --> REF["parentRef = HMAC con clave versionada"]
+    SECRET["Secrets Manager<br/>secretKey por versión"] -. "solo api-core" .-> REF
+
+    subgraph DOMAIN["ptk-domain-{environment} · PK + SK · TTL expiresAt"]
+        direction TB
+
+        subgraph ADULT["Partición PK = PARENT#parentRef"]
+            ACCOUNT["SK = ACCOUNT<br/>ParentAccount active o deleting"]
+            CONSENT["SK = CONSENT#purpose<br/>Consent vigente"]
+            CONSENT_EVENT["SK = CONSENT_EVENT#purpose#decidedAt#eventId<br/>Historial inmutable"]
+            PROFILE["SK = PROFILE#childId<br/>ChildProfile + ownership"]
+            LOCATOR["SK = CHALLENGE#challengeId<br/>ChallengeLocator · TTL 7 días"]
+            DELETION["SK = DELETION#scope#requestId<br/>DeletionJob sin TTL mientras está activo"]
+        end
+
+        subgraph CHILD["Partición PK = CHILD#childId"]
+            PROGRESS["SK = PROGRESS#MAIN<br/>Progress + revision"]
+            CHALLENGE["SK = CHALLENGE#challengeId<br/>Challenge curado · válido 30 min · TTL 7 días"]
+            ATTEMPT["SK = ATTEMPT#answeredAt#attemptId<br/>Attempt cerrado · TTL 30 días"]
+        end
+    end
+
+    subgraph IDEMPOTENCY["ptk-idempotency-{environment} · PK + SK · TTL"]
+        IDEMP["PK = PARENT#parentRef<br/>SK = SCOPE#scopeKey#IDEMP#operation#digest<br/>requestHash + estado + snapshot"]
+    end
+
+    REF --> ACCOUNT
+    ACCOUNT -->|"status active"| CONSENT
+    CONSENT --> CONSENT_EVENT
+    ACCOUNT -->|"status active"| PROFILE
+    PROFILE -->|"autoriza acceso"| PROGRESS
+    PROFILE -->|"autoriza emisión"| CHALLENGE
+    LOCATOR -. "apunta a childId + challengeId" .-> CHALLENGE
+
+    ACCOUNT --> TX["TransactWrite intento<br/>cuenta + perfil + core activos"]
+    PROFILE --> TX
+    CONSENT --> TX
+    CHALLENGE --> TX
+    TX --> ATTEMPT
+    TX --> PROGRESS
+    TX --> IDEMP
+
+    DELETION -->|"Query por páginas"| CHILD
+    DELETION -->|"Query localizadores por adulto y childId"| LOCATOR
+    DELETION -->|"Query idempotencia por adulto y alcance"| IDEMP
+    DELETION -->|"elimina cuenta/perfil al final"| ACCOUNT
+
+    EXPORT["Exportación autenticada<br/>Query adulto + Query por cada childId"]
+    ACCOUNT --> EXPORT
+    PROFILE --> EXPORT
+    CHILD --> EXPORT
+
+    NOTE["Sin Scan · Sin GSI inicial · IA cruda no persistida"]
+    DOMAIN --- NOTE

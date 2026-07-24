@@ -1,0 +1,5 @@
+aws_region = "us-east-1"
+use_floci  = true
+
+# Las credenciales y AWS_ENDPOINT_URL se pasan por variables de entorno.
+# Nunca se guardan en este archivo.

@@ -104,9 +104,11 @@ consentimiento y catálogo. Fallar al enviar no revierte la operación.
 | responder reto | TransactWrite: estado + intento + progreso + idempotencia |
 | borrar cuenta/perfil | Query por particiones conocidas + workflow idempotente |
 
-No fijar el diseño físico definitivo hasta probar estos patrones. Preferir una
-tabla de dominio y una tabla de idempotencia si simplifica IAM/TTL; la meta no
-es “single table” por sí misma.
+ADR-003 adopta una tabla de dominio y otra de idempotencia, sin GSI inicial. El
+detalle de claves, items, transacciones, TTL, borrado y capacidad está en
+[`adr/ADR-003-modelo-fisico-dynamodb.md`](adr/ADR-003-modelo-fisico-dynamodb.md).
+La implementación debe validar los patrones con contract e integration tests
+antes de considerar estable cualquier parámetro diferido.
 
 ## API
 
@@ -144,11 +146,10 @@ que capture prompts.
 - IaC: mocks/plan por defecto; apply solo con aprobación en cuenta sandbox.
 - Security: IDOR, mass assignment, injection, secret/PII logging y rate limits.
 
-## ADR pendientes
+## ADR aceptados
 
-- ADR-001: registrar la elección por defecto de Web Adapter frente a Mangum y
-  decidir empaquetado ZIP o imagen; un spike solo la cambia con evidencia.
-- ADR-002: sesión Cognito en SPA.
-- ADR-003: diseño físico DynamoDB.
-- ADR-004: integración asincrónica de Mixpanel.
-- ADR-005: modelo/región Bedrock con retención cero.
+- [ADR-001: Lambda Web Adapter y empaquetado](adr/ADR-001-lambda-web-adapter-y-empaquetado.md).
+- [ADR-002: sesión Cognito para la SPA](adr/ADR-002-sesion-cognito-spa.md).
+- [ADR-003: modelo físico DynamoDB](adr/ADR-003-modelo-fisico-dynamodb.md).
+- [ADR-004: analítica desacoplada](adr/ADR-004-analitica-desacoplada.md).
+- [ADR-005: Bedrock deshabilitado hasta verificar retención cero](adr/ADR-005-bedrock-deshabilitado-hasta-retencion-cero.md).

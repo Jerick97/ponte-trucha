@@ -16,7 +16,7 @@
   - _Requisitos: R4_
 - [ ] 7. Definir contratos OpenAPI de cuenta, consentimiento y perfiles
   - _Requisitos: R2, R3, R4_
-- [ ] 8. Crear Cognito y JWT authorizer mediante Terraform con tests
+- [x] 8. Crear Cognito y JWT authorizer mediante Terraform con tests
   - _Requisitos: R2, R6_
 - [ ] 9. Integrar onboarding adulto y sesión con el frontend
   - _Requisitos: R1, R2, R3_

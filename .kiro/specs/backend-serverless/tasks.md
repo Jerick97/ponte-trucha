@@ -1,23 +1,24 @@
 # Tareas — Backend serverless
 
-> Plan de implementación para Kiro. Todas están pendientes.
+> Plan de implementación para Kiro. Las tareas 1, 2, 4, 6, 19 y 20 están
+> completadas; las demás continúan pendientes.
 
 ## Fase 0 — Decisiones y contrato
 
-- [ ] 1. Resolver ADR-001 a ADR-005 y registrar trade-offs
+- [x] 1. Resolver ADR-001 a ADR-005 y registrar trade-offs
   - _Requisitos: R1, R2, R6, R8_
-- [ ] 2. Definir access patterns y diagrama físico DynamoDB
+- [x] 2. Definir access patterns y diagrama físico DynamoDB
   - _Requisitos: R2, R4_
 - [ ] 3. Diseñar OpenAPI 3.1 con ejemplos sanitizados y RFC 9457
   - _Requisitos: R7_
 
 ## Fase 1 — Setup con TDD
 
-- [ ] 4. Crear estructura backend y toolchain aprobada sin lógica
+- [x] 4. Crear estructura backend y toolchain aprobada sin lógica
   - _Requisitos: R1, R7_
 - [ ] 5. Configurar pytest, coverage, lint y type checking en CI
   - _Requisitos: R7_
-- [ ] 6. Escribir tests de arquitectura que impidan imports inválidos
+- [x] 6. Escribir tests de arquitectura que impidan imports inválidos
   - _Requisitos: R7_
 
 ## Fase 2 — Dominio
@@ -52,9 +53,9 @@
 
 ## Fase 4 — Terraform y despliegue dev
 
-- [ ] 19. Crear módulos Terraform con tests para API, Lambda y DynamoDB
+- [x] 19. Crear módulos Terraform con tests para API, Lambda y DynamoDB
   - _Requisitos: R1, R2, R8_
-- [ ] 20. Aplicar IAM mínimo, límites, cifrado, TTL y logs con retención
+- [x] 20. Aplicar IAM mínimo, límites, cifrado, TTL y logs con retención
   - _Requisitos: R2, R8_
 - [ ] 21. Ejecutar plan revisado y desplegar únicamente a `dev`
   - _Requisitos: R8_

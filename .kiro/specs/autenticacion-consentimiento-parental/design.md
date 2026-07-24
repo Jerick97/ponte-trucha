@@ -40,11 +40,11 @@ verificable; el mecanismo final requiere revisión legal.
 - App client público sin client secret para SPA.
 - Authorization Code + PKCE si se usa Hosted UI; si se usa UI custom, abrir ADR
   sobre almacenamiento de tokens y CSRF.
-- Access tokens con scopes:
-  - `profiles:read`, `profiles:write`;
-  - `consent:read`, `consent:write`;
-  - `game:play`;
-  - `account:delete`.
+- Access tokens con scopes del resource server `ponte-trucha-api`:
+  - `profiles.read`, `profiles.write`;
+  - `consents.read`, `consents.write`;
+  - `game.play`;
+  - `account.delete`.
 - API Gateway valida issuer, audience, expiración y scopes.
 
 ## Modelo

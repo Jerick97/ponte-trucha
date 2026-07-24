@@ -3,6 +3,7 @@
 - `arquitectura-backend.svg`: diagrama principal, listo para README/pitch.
 - `flujo-consentimiento.mmd`: onboarding y finalidades.
 - `secuencia-reto.mmd`: emisión e intento.
+- `modelo-fisico-dynamodb.mmd`: tablas, particiones, items y relaciones del MVP.
 - `observabilidad.mmd`: CloudWatch, Sentry y Mixpanel.
 
 ## Iconos AWS
