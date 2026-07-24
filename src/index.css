@@ -31,6 +31,12 @@
   --color-nivel-trucha: #2f6bff;
   --color-nivel-super: #7c3aed;
 
+  /* Tramos de racha de la mascota (chispa -> corriente -> super trucha).
+     Reutilizan los colores del sistema; solo la "corriente" cyan es nueva. */
+  --color-racha-chispa: var(--color-confianza);
+  --color-racha-corriente: #22b8cf;
+  --color-racha-super: var(--color-nivel-super);
+
   /* Hardware del telefono simulado */
   --color-carcasa: #1a1e30;
   --color-carcasa-borde: #454b66;
@@ -343,28 +349,107 @@
   animation: racha-late 0.9s ease-in-out infinite;
 }
 
-/* --- Mascota de racha (el pez que celebra al acertar) -------------- */
+/* --- Mascota de racha (el pez que celebra y evoluciona al acertar) ---
+   Tres tramos: 1 chispa (verde), 2 corriente (cyan), 3 super trucha
+   (aura purpura + estrellas). El acento de cada tramo se propaga por la
+   variable --racha-acento para no repetir clases de color. */
 .mascota-racha {
   position: absolute;
   left: 50%;
-  top: 32%;
+  top: 30%;
   z-index: 45;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.15rem;
+  gap: 0.2rem;
   transform: translateX(-50%);
   pointer-events: none;
+  --racha-acento: var(--color-racha-chispa);
 }
+.mascota-racha--2 {
+  --racha-acento: var(--color-racha-corriente);
+}
+.mascota-racha--3 {
+  --racha-acento: var(--color-racha-super);
+}
+
+/* Rotulo "SUPER TRUCHA!" del tramo maximo. */
+.mascota-racha__titulo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.35rem;
+  letter-spacing: 0.02em;
+  color: var(--color-nivel-despierto);
+  text-shadow:
+    0 2px 0 var(--color-racha-super),
+    0 3px 8px rgb(0 0 0 / 0.4);
+  animation: combo-aparece 1.6s ease-out both;
+}
+
+/* Escenario donde nada el pez y orbitan las particulas. */
+.mascota-racha__escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 6rem;
+}
+.mascota-racha--3 .mascota-racha__escena {
+  animation: escena-gira 2.4s ease-in-out both;
+}
+
 .mascota-racha__pez {
+  position: relative;
+  z-index: 2;
   line-height: 1;
   filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.3));
-  animation: mascota-salta 1.5s ease-in-out both;
+  animation: mascota-salta 1.6s ease-in-out both;
 }
+.mascota-racha--2 .mascota-racha__pez {
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.3))
+    drop-shadow(0 0 10px var(--color-racha-corriente));
+}
+.mascota-racha--3 .mascota-racha__pez {
+  filter: drop-shadow(0 6px 14px rgb(0 0 0 / 0.35))
+    drop-shadow(0 0 14px var(--color-racha-super)) hue-rotate(65deg) saturate(1.5)
+    brightness(1.05);
+}
+
+/* Aura giratoria/palpitante del tramo super trucha. */
+.mascota-racha__aura {
+  position: absolute;
+  inset: -14%;
+  z-index: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-racha-super) 55%, transparent) 0%,
+    transparent 66%
+  );
+  animation: aura-late 1.1s ease-in-out infinite;
+}
+
+/* Particulas alrededor del pez: chispas, burbujas o estrellas segun tramo. */
+.mascota-racha__particula {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  font-size: 0.85rem;
+  color: var(--racha-acento);
+  text-shadow: 0 0 6px var(--racha-acento);
+  transform: translate(-50%, -50%) rotate(var(--ang)) translateY(-0.4rem);
+  animation: particula-vuela 1.5s ease-out both;
+  animation-delay: var(--retraso);
+}
+.mascota-racha--3 .mascota-racha__particula {
+  font-size: 1.05rem;
+}
+
 .mascota-racha__combo {
   font-family: var(--font-display);
   font-weight: 800;
-  color: var(--color-nivel-despierto);
+  color: var(--racha-acento);
   text-shadow: 0 2px 6px rgb(0 0 0 / 0.4);
   animation: combo-aparece 1.5s ease-out both;
 }
@@ -385,6 +470,41 @@
 }
 .mascota-racha--3 .mascota-racha__combo {
   font-size: 1.9rem;
+}
+@keyframes particula-vuela {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--ang)) translateY(-0.4rem) scale(0.3);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--ang)) translateY(-2.7rem) scale(1);
+  }
+}
+@keyframes aura-late {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.12);
+  }
+}
+@keyframes escena-gira {
+  0% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 @keyframes mascota-salta {
   0% {
