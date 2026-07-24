@@ -5,6 +5,8 @@
  * subcarpeta. Se autodetectan por palabras clave en el nombre.
  */
 
+import { estaSilenciado } from '../../../store/audio';
+
 export type SonidoDiscord = 'ping';
 
 const archivos = import.meta.glob('../../../assets/audio/sonidos/discord/*.{mp3,ogg,m4a,wav}', {
@@ -30,6 +32,7 @@ const SONIDOS: Partial<Record<SonidoDiscord, string>> = {
 
 /** Reproduce un sonido de Discord; silencioso si falta el archivo. */
 export function reproducirSonidoDc(sonido: SonidoDiscord) {
+  if (estaSilenciado()) return;
   const src = SONIDOS[sonido];
   if (!src) return;
   const audio = new Audio(src);

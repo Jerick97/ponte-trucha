@@ -5,6 +5,8 @@
  * subcarpeta. Se autodetectan por palabras clave en el nombre.
  */
 
+import { estaSilenciado } from '../../../store/audio';
+
 export type SonidoWhatsApp = 'notificacion';
 
 const archivos = import.meta.glob('../../../assets/audio/sonidos/whatsapp/*.{mp3,ogg,m4a,wav}', {
@@ -30,6 +32,7 @@ const SONIDOS: Partial<Record<SonidoWhatsApp, string>> = {
 
 /** Reproduce un sonido de WhatsApp; silencioso si falta el archivo. */
 export function reproducirSonidoWa(sonido: SonidoWhatsApp) {
+  if (estaSilenciado()) return;
   const src = SONIDOS[sonido];
   if (!src) return;
   const audio = new Audio(src);
