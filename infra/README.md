@@ -1,76 +1,83 @@
 # Infraestructura AWS
 
-Owner: **Francis** (backend / arquitectura AWS).
+Owner: **Francis**.
 
-Todo lo que corre fuera del navegador vive aqui. Regla del proyecto: si algo
-puede resolverse en el cliente, se resuelve en el cliente. El backend existe
-solo para el fallback del LLM.
+## Estado
 
-## Componentes
+`infra/lambda/estafador/index.mjs` es el fallback legado del demo. El backend
+serverless completo todavía no está implementado. Kiro debe seguir, en orden:
 
-| Componente | Servicio | Para que | Free tier |
-|---|---|---|---|
-| Hosting del juego | S3 (bucket privado) + CloudFront (OAC) | Servir `dist/` como sitio estatico | Si |
-| Fallback del LLM | Lambda Function URL (`infra/lambda/estafador`) | Responder como el estafador cuando el navegador no soporta la Prompt API | Si (1M req/mes) |
-| Secreto del proveedor | Variable de entorno de la Lambda (o Secrets Manager si sobra tiempo) | Guardar `MISTRAL_API_KEY` | Si |
-| Puntajes (opcional) | localStorage; DynamoDB solo si sobra tiempo | Guardar el mejor puntaje | Si |
+1. `.kiro/specs/backend-serverless/requirements.md`
+2. `.kiro/specs/backend-serverless/design.md`
+3. `.kiro/specs/backend-serverless/tasks.md`
 
-No hay login, no hay base de datos de usuarios, no se guarda nada del nino.
-Eso es decision de diseno, no falta de tiempo: se cuenta asi en el video.
+No ampliar la Function URL Node existente como si fuera la API nueva.
 
-## Diagrama
+## Arquitectura objetivo
 
-```
-Navegador del nino
-  |
-  |-- (a) HTML/JS/CSS  <---- CloudFront <---- S3 (dist/)
-  |
-  |-- (b) Estafador conversacional
-        |
-        +-- Plan A: Prompt API de Chrome (Gemini Nano, on-device)
-        |     nada sale del dispositivo
-        |
-        +-- Plan B: fetch POST -> Lambda Function URL -> API de Mistral
-              se envia solo escenarioId + lo que el nino escribio
-```
+| Capacidad | Servicio |
+|---|---|
+| frontend | S3 privado + CloudFront OAC |
+| identidad adulta | Cognito User Pool |
+| API | API Gateway HTTP API + JWT scopes |
+| cómputo | Lambda Python 3.14 + FastAPI/Web Adapter |
+| persistencia | DynamoDB |
+| IA opcional | Bedrock con retención cero |
+| operación | CloudWatch + Powertools |
+| errores | Sentry sanitizado |
+| producto | Mixpanel server-side y consentido |
+| IaC | Terraform |
 
-## Despliegue del frontend
+No se usa EC2, RDS, VPC ni NAT Gateway en el MVP.
 
-```bash
-npm run build
-aws s3 sync dist/ s3://$BUCKET --delete
-aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
-```
+Diagrama:
+[`docs/diagramas/arquitectura-backend.svg`](../docs/diagramas/arquitectura-backend.svg).
 
-Detalle paso a paso (crear bucket, OAC, distribucion): ver
-`.kiro/docs/guia-despliegue.md`.
+## Principios
 
-## Despliegue de la Lambda
+- Cuenta Cognito solo del adulto; perfiles infantiles en DynamoDB.
+- IAM mínimo por función.
+- No cuerpos, tokens, PII, chat, prompts ni respuestas en logs.
+- Secrets fuera del frontend y del state Terraform.
+- Retención/TTL explícitos.
+- Mixpanel apagado por defecto; Sentry sin PII.
+- Presupuesto, alarmas, quotas y concurrency antes de producción.
+- `terraform fmt`, `validate` y `test` antes de plan/apply.
+- Tests con mocks/plan por defecto; `apply` de tests requiere aprobación porque
+  puede crear recursos.
 
-```bash
-cd infra/lambda/estafador
-zip -r ../estafador.zip index.mjs
-aws lambda create-function \
-  --function-name ponte-trucha-estafador \
-  --runtime nodejs22.x \
-  --handler index.handler \
-  --zip-file fileb://../estafador.zip \
-  --role $ROLE_ARN \
-  --timeout 10 \
-  --environment "Variables={MISTRAL_API_KEY=...,ORIGEN_PERMITIDO=https://tu-dominio}"
+## Estructura objetivo
 
-aws lambda create-function-url-config \
-  --function-name ponte-trucha-estafador \
-  --auth-type NONE
+```text
+infra/
+├── modules/
+│   ├── edge/
+│   ├── identity/
+│   ├── api/
+│   ├── data/
+│   └── observability/
+├── environments/
+│   ├── dev/
+│   └── prod/
+└── tests/
 ```
 
-Luego se pone la URL resultante en `.env.local` como `VITE_LLM_ENDPOINT`.
+Esta estructura es una decisión de diseño, no una autorización para crearla
+fuera de las tareas.
 
-## Reglas de seguridad
+## Costo
 
-- La API key del proveedor **nunca** va al frontend. Si aparece un
-  `VITE_MISTRAL_API_KEY` en el codigo, es un bug de seguridad.
-- `ORIGEN_PERMITIDO` se restringe al dominio de CloudFront antes de la entrega.
-- La Lambda no loguea el contenido del chat, solo el tipo de error.
-- Rate limit basico: `reserved-concurrent-executions` en 5 para que un abuso
-  no genere costo.
+“Dentro del free tier” es un objetivo y debe verificarse contra la cuenta real:
+las condiciones de AWS dependen de la fecha de alta y los créditos disponibles.
+La arquitectura evita costos fijos; Bedrock, Sentry y Mixpanel requieren flags
+y límites. Budgets puede alertar con retraso y no sustituye cuotas/concurrency.
+
+Para DynamoDB, comenzar con capacidad provisionada y mantener el total regional
+por debajo del allowance; on-demand no consume las 25 RCU/WCU gratuitas. Para
+el edge, evaluar el plan CloudFront Free de $0 vigente. Ver
+`.kiro/docs/costos-aws.md`.
+
+## Legado
+
+Para mantener el demo existente, ver `.kiro/docs/guia-despliegue.md`. Esa guía
+no define la infraestructura objetivo.

@@ -27,6 +27,8 @@ interface Props {
   /** La linterna enciende el flash de la parte trasera. */
   linterna: boolean;
   onAlternarLinterna: () => void;
+  /** Abre la camara sin desbloquear, como en iOS. */
+  onAbrirCamara: () => void;
 }
 
 export function PantallaBloqueo({
@@ -35,6 +37,7 @@ export function PantallaBloqueo({
   onAbrirNotificacion,
   linterna,
   onAlternarLinterna,
+  onAbrirCamara,
 }: Props) {
   const inicio = useRef<{ x: number; y: number } | null>(null);
   const deslizando = useRef(false);
@@ -76,12 +79,15 @@ export function PantallaBloqueo({
     setDesplazamiento(0);
   }
 
+  // El transform solo se aplica durante el gesto: si estuviera siempre,
+  // crearia un contexto de apilamiento que dejaria el aviso de la isla
+  // (z-40) por debajo de la isla fisica (z-30) de la carcasa.
   return (
     <div
       className={`wallpaper relative flex h-full touch-none select-none flex-col overflow-y-auto ${
         deslizando.current ? '' : 'transition-transform duration-300'
       }`}
-      style={{ transform: `translateY(${desplazamiento}px)` }}
+      style={desplazamiento === 0 ? undefined : { transform: `translateY(${desplazamiento}px)` }}
       onPointerDown={alPresionar}
       onPointerMove={alMover}
       onPointerUp={alSoltar}
@@ -112,7 +118,7 @@ export function PantallaBloqueo({
           </div>
         )}
 
-        {/* Linterna (enciende el flash trasero) y camara decorativa */}
+        {/* Linterna (enciende el flash trasero) y camara (abre la app) */}
         <div className="flex items-center justify-between px-8">
           <button
             type="button"
@@ -127,12 +133,14 @@ export function PantallaBloqueo({
           >
             <IconoLinterna className="h-6 w-6" />
           </button>
-          <span
-            aria-hidden="true"
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)] backdrop-blur"
+          <button
+            type="button"
+            aria-label="Abrir la cámara"
+            onClick={onAbrirCamara}
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-lock-texto)]/15 text-[var(--color-lock-texto)] backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-marca-500)]"
           >
             <IconoCamaraLock className="h-6 w-6" />
-          </span>
+          </button>
         </div>
 
         <div className="flex flex-col items-center gap-3">

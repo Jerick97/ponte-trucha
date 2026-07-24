@@ -1,5 +1,10 @@
 # Design Document: Banco de escenarios
 
+> Este diseño describe autoría/validación local. El backend objetivo publica y
+> entrega contenido sin revelar respuestas; ver
+> `../backend-serverless/design.md`. El JSON versionado no se elimina: sigue como
+> fallback curado.
+
 ## Overview
 
 Contenido estático versionado en git, validado en dos niveles: un JSON Schema

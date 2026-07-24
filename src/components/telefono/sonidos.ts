@@ -5,7 +5,7 @@
  * recursos externos.
  */
 
-export type SonidoSistema = 'encendido' | 'apagado' | 'bloqueo';
+export type SonidoSistema = 'encendido' | 'apagado' | 'bloqueo' | 'notificacion' | 'obturador';
 
 const archivos = import.meta.glob('../../assets/audio/sonidos/*.{mp3,ogg,m4a,wav}', {
   eager: true,
@@ -17,6 +17,8 @@ const PATRONES: Record<SonidoSistema, RegExp> = {
   encendido: /startup|encend|arranque|power ?on/,
   apagado: /shutdown|apag|power ?off/,
   bloqueo: /lock|bloqueo/,
+  notificacion: /notif|alert|message|mensaje/,
+  obturador: /camera|camara|shutter|obturador/,
 };
 
 function buscar(patron: RegExp): string | undefined {
@@ -30,6 +32,8 @@ const SONIDOS: Partial<Record<SonidoSistema, string>> = {
   encendido: buscar(PATRONES.encendido),
   apagado: buscar(PATRONES.apagado),
   bloqueo: buscar(PATRONES.bloqueo),
+  notificacion: buscar(PATRONES.notificacion),
+  obturador: buscar(PATRONES.obturador),
 };
 
 /**

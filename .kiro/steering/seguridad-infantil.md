@@ -1,75 +1,131 @@
-# Seguridad infantil — límites innegociables
+# Seguridad y privacidad infantil
 
-> Steering global. Es la parte del producto que **contamos como fortaleza en el
-> video**, no como limitación. Cualquier cambio a este archivo se discute con el
-> equipo completo antes de tocar código.
+Estas reglas son innegociables. El producto está dirigido a niños de 8 a 13
+años, pero la cuenta y las decisiones legales pertenecen al padre, madre o
+tutor.
 
-## 1. Alcance temático cerrado
+## Principio rector
 
-El juego cubre **estafas y fraudes**: monedas gratis, sorteos falsos, robo de
-cuenta, archivos con virus, links tramposos, suplantación de un amigo.
+Recolectar lo mínimo, explicar cada finalidad, negar por defecto y poder borrar.
+Una fecha de nacimiento adulta es solo un **age gate**, no prueba suficiente de
+identidad ni consentimiento verificable.
 
-Queda **fuera, siempre**:
+## Onboarding adulto
 
-- Acoso, grooming, depredadores, "extraños peligrosos".
-- Contenido sexual, romántico o corporal de cualquier tipo.
-- Violencia, autolesión, drogas.
-- Manipulación emocional personal (aislar al niño de su familia, secretos).
+1. Mostrar una pantalla claramente dirigida al adulto.
+2. Pedir fecha de nacimiento solo para comprobar mayoría de edad.
+3. Procesarla en memoria y guardar únicamente `ageGatePassedAt` y la versión de
+   la regla. No persistir la fecha.
+4. Crear/verificar la cuenta adulta en Cognito.
+5. Presentar aviso de privacidad y consentimientos separados:
+   - tratamiento necesario para la cuenta y el progreso;
+   - procesamiento con IA server-side, si se activa;
+   - analítica de producto con Mixpanel, opcional y apagada por defecto.
+6. Registrar versión, finalidad, timestamp y método de cada consentimiento.
+7. Permitir revocación y borrado desde el área del adulto.
 
-Razón: simular a un adulto que manipula emocionalmente a un niño es un riesgo
-real, no un ejercicio educativo. Elegimos un dominio acotado donde la simulación
-enseña sin exponer.
+Antes de producción se requiere revisión legal local del mecanismo de
+consentimiento verificable. No afirmar “cumple COPPA” o “cumple la ley peruana”
+sin esa revisión.
 
-## 2. El LLM corre en el dispositivo del niño
+## Identidad
 
-Plan A es la Prompt API de Chrome (Gemini Nano, on-device): **ningún dato del
-niño sale del navegador**. El fallback a Lambda solo envía el `escenarioId` y lo
-que el propio niño escribió en el chat simulado — nunca nombre, edad, ubicación
-ni identificador de dispositivo.
+- Cognito contiene solo la cuenta adulta.
+- El niño no tiene correo, teléfono, contraseña, cuenta social ni acceso directo
+  a Cognito.
+- Un perfil infantil usa ID aleatorio, alias/avatar predefinido y banda etaria,
+  no nombre real ni fecha de nacimiento.
+- Nunca exponer `cognitoSub` a Mixpanel, Sentry o Bedrock.
+- Toda operación sobre un perfil comprueba ownership desde el access token.
 
-## 3. Doble capa de contención
+## Datos permitidos y prohibidos
 
-| Capa | Archivo | Qué hace |
-|---|---|---|
-| Prompt | `src/llm/prompts.ts` | Acota el personaje, prohíbe temas, limita el largo |
-| Filtro de salida | `src/llm/guardrails.ts` | Revisa la respuesta del modelo y la reemplaza por guion seguro si toca un tema prohibido |
-| Filtro servidor | `infra/lambda/estafador/index.mjs` | Mismo system prompt, independiente del cliente |
+| Permitido | Prohibido |
+|---|---|
+| Banda `8-10` o `11-13` | Fecha de nacimiento del niño |
+| Alias/avatar de catálogo | Nombre real, foto o voz |
+| Canal, dificultad, acierto y puntos | Correo/teléfono del niño |
+| Código de guardrail | Texto libre/chat en logs o analítica |
+| Tiempo de respuesta por rango | IP, geolocalización o fingerprint |
+| Consentimiento versionado del adulto | Token, contraseña o respuestas secretas |
 
-El filtro asume que el prompt puede fallar. Nunca se elimina "porque el modelo ya
-se porta bien".
+El texto que el niño escriba al estafador es efímero. Solo puede usarse para la
+respuesta inmediata; no se guarda en DynamoDB, logs, Sentry ni Mixpanel.
 
-## 4. El estafador se rinde
+## IA y contenido
 
-Si el niño dice que no, que va a bloquear o que le va a contar a un adulto, el
-personaje insiste **una sola vez** de forma leve y se rinde. Enseñamos que cortar
-funciona. Un estafador que insiste infinito enseña impotencia.
+- La IA no publica retos directamente. Toda salida pasa por esquema, reglas
+  semánticas, filtros de seguridad y fallback curado.
+- Ámbito: phishing, fraude digital y señales de confianza. Nunca acoso sexual,
+  grooming, amenazas, autolesión, odio, drogas ni manipulación personal.
+- No pedir al niño secretos reales, datos personales, fotos, voz, ubicación,
+  contactos ni credenciales.
+- El estafador se detiene si el niño se niega, bloquea o busca a un adulto.
+- Amazon Bedrock debe usar retención cero y un modelo compatible. Si no puede
+  garantizarse, se deshabilita el fallback.
+- Prompt y respuesta no incluyen IDs de cuenta/perfil ni texto histórico.
 
-Límite duro: `MAX_TURNOS_CHAT = 4` turnos del niño por escenario.
+## Observabilidad segura
 
-## 5. Cero recolección de datos
+### CloudWatch y Powertools
 
-- Sin login, sin nombre, sin correo, sin edad.
-- Sin analítica de terceros, sin píxeles, sin cookies de tracking.
-- El puntaje, si se guarda, va a `localStorage` del propio dispositivo.
-- Si en el futuro entra DynamoDB, guarda puntaje anónimo y nada más.
+- Logging estructurado con lista permitida.
+- No activar logging automático del evento completo.
+- Métricas con dimensiones de baja cardinalidad.
+- Retención explícita y corta en `dev`; revisar la de `prod`.
+- Alarmas no incluyen payloads.
 
-## 6. Módulo de reglas de oro
+### Sentry
 
-El juego termina reforzando dos reglas que el niño se lleva:
+- `send_default_pii=false`.
+- Eliminar headers, cookies, query strings, body, user, breadcrumbs de entrada y
+  variables sensibles mediante `before_send`.
+- Activar scrubbing server-side e IP scrubbing.
+- Sin Session Replay, feedback del usuario ni LLM monitoring.
+- Tags permitidos: ambiente, release, ruta normalizada, status y código de error.
 
-1. Nadie de verdad te pide tu contraseña ni el código que llega a tu celular.
-2. Si un mensaje te incomoda o te apura, **cuéntaselo a un adulto de confianza**.
+### Mixpanel
 
-## 7. Qué hacer si el modelo se sale del guion en la demo
+- Feature flag apagado por defecto.
+- Enviar server-side solo si existe consentimiento analítico vigente.
+- IDs analíticos aleatorios y revocables; nunca Cognito `sub`.
+- Deshabilitar geolocalización (`ip=0`) y perfiles enriquecidos.
+- Sin autocapture, Session Replay, heatmaps ni texto libre.
+- Solo eventos/propiedades del catálogo aprobado.
+- Revocar consentimiento detiene nuevos eventos y dispara borrado del ID.
 
-La respuesta filtrada se marca internamente (`filtrada: true`) y se reemplaza por
-una frase de guion. En el video, si pasa, se muestra: es evidencia de que la
-contención funciona.
+## Seguridad de API
 
-## Checklist de revisión antes de entregar
+- HTTPS únicamente.
+- API Gateway JWT authorizer con scopes; usar access token, no ID token.
+- CORS restringido a CloudFront y localhost solo en `dev`.
+- Rate limits, cuotas y reserved concurrency con valores documentados.
+- `Idempotency-Key` en mutaciones para evitar puntuación o borrado duplicado.
+- Validación Pydantic con límites de tamaño y enums cerrados.
+- Respuestas no revelan existencia de perfiles ajenos.
+- IAM de mínimo privilegio por Lambda.
+- Secrets en Secrets Manager/SSM; nunca `VITE_*`.
+- Dependencias fijadas, SBOM/scan en CI y actualizaciones revisadas.
 
-- [ ] Ningún escenario del banco toca los temas prohibidos.
-- [ ] `npm run test` pasa en `src/test/guardrails.test.ts`.
-- [ ] La Lambda no loguea el contenido del chat.
-- [ ] No hay API keys en `src/`.
-- [ ] `ORIGEN_PERMITIDO` de la Lambda apunta al dominio real, no a `*`.
+## Retención y derechos
+
+- Definir TTL por tipo de dato antes de crear la tabla.
+- Retos emitidos e idempotencia expiran automáticamente.
+- Historial detallado se resume y elimina cuando deja de ser necesario.
+- El adulto puede exportar, revocar y borrar todos sus perfiles.
+- El borrado incluye DynamoDB, IDs de Mixpanel y cualquier sistema externo
+  permitido; los backups siguen su política documentada.
+- Registrar el evento de borrado sin conservar los datos borrados.
+
+## Checklist de entrega
+
+- [ ] Fecha adulta no persistida.
+- [ ] Consentimientos separados, versionados y revocables.
+- [ ] Cuenta solo adulta; perfiles sin PII infantil.
+- [ ] Pruebas IDOR y de autorización pasan.
+- [ ] Ningún cuerpo/chat/token aparece en logs o errores.
+- [ ] Mixpanel está apagado sin consentimiento.
+- [ ] Sentry elimina PII antes de salir de AWS.
+- [ ] Bedrock usa retención cero o está deshabilitado.
+- [ ] Borrado integral probado en `dev`.
+- [ ] Presupuesto, límites y alarmas configurados.

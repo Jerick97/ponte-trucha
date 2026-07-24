@@ -220,6 +220,86 @@
       ],
       "leccion": "No todo mensaje apurado es estafa: revisa si te piden algo tuyo.",
       "permiteConversacion": false
+    },
+    {
+      "id": "correo-soporte-pide-clave",
+      "tipo": "robo-de-cuenta",
+      "canal": "correo",
+      "dificultad": 2,
+      "remitente": {
+        "nombre": "Soporte Roblox",
+        "avatar": "🎧",
+        "verificado": false
+      },
+      "mensaje": "Tu cuenta será suspendida hoy. Detectamos actividad rara y para salvarla debes responder este correo con tu usuario y tu clave. Si no respondes antes de las 6pm, se borra para siempre.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "tu usuario y tu clave",
+          "explicacion": "El soporte de verdad ya conoce tu cuenta. Nunca necesita que le mandes tu clave."
+        },
+        {
+          "fragmento": "antes de las 6pm",
+          "explicacion": "Te ponen hora límite para asustarte y que no pienses. Esa prisa es la trampa."
+        }
+      ],
+      "leccion": "El soporte de verdad nunca te pide tu clave por correo.",
+      "permiteConversacion": true,
+      "perfilEstafador": {
+        "disfraz": "el equipo de soporte del juego",
+        "tacticas": ["autoridad falsa", "prisa", "miedo a perder la cuenta"],
+        "objetivo": "que el nino responda el correo con su usuario y su clave"
+      }
+    },
+    {
+      "id": "correo-sorteo-sin-participar",
+      "tipo": "sorteo-falso",
+      "canal": "correo",
+      "dificultad": 1,
+      "remitente": {
+        "nombre": "Premios GamerZone",
+        "avatar": "🎁",
+        "verificado": false
+      },
+      "mensaje": "¡Ganaste una tarjeta de juego de $50! Fuiste elegido entre todos los visitantes de la tienda. Responde hoy mismo con tu nombre completo y tu dirección para mandarte el premio, o pasa al siguiente ganador.",
+      "respuestaCorrecta": "trampa",
+      "senales": [
+        {
+          "fragmento": "Fuiste elegido",
+          "explicacion": "¿Y cuándo entraste a ese sorteo? Nadie puede ganar un sorteo en el que nunca participó."
+        },
+        {
+          "fragmento": "hoy mismo",
+          "explicacion": "La prisa de siempre: quieren que respondas antes de pensar."
+        }
+      ],
+      "leccion": "Si nunca entraste a un sorteo, no puedes ganarlo.",
+      "permiteConversacion": false
+    },
+    {
+      "id": "correo-colegio-feria",
+      "tipo": "legitimo",
+      "canal": "correo",
+      "dificultad": 1,
+      "remitente": {
+        "nombre": "Miss Rosario (colegio)",
+        "avatar": "📚",
+        "verificado": false
+      },
+      "mensaje": "¡Hola chicos! Les recuerdo que el viernes es la feria de ciencias. Traigan su maqueta terminada y vengan con el polo del colegio. Los esperamos en el patio a las 9.",
+      "respuestaCorrecta": "confianza",
+      "senales": [
+        {
+          "fragmento": "Les recuerdo",
+          "explicacion": "Este correo solo te avisa algo del colegio: no te pide claves, ni plata, ni códigos."
+        },
+        {
+          "fragmento": "Traigan su maqueta",
+          "explicacion": "Te pide cosas de clase, no secretos tuyos. Eso es normal y seguro."
+        }
+      ],
+      "leccion": "Un correo real te avisa cosas; no te pide nada tuyo.",
+      "permiteConversacion": false
     }
   ]
 }

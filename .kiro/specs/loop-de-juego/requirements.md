@@ -1,5 +1,9 @@
 # Requirements Document
 
+> El loop visual sigue vigente, pero reto, intento, score y progreso pasan a ser
+> autoritativos en backend. La integración se planifica en
+> `../backend-serverless/` y requiere cuenta adulta/perfil infantil.
+
 > Loop de juego y teléfono simulado
 
 ## Introduction

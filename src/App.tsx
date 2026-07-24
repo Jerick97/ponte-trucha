@@ -16,6 +16,15 @@ import { HomeScreen } from './components/telefono/HomeScreen';
 import { StatusBar } from './components/telefono/StatusBar';
 import { VistaApp } from './components/apps/VistaApp';
 import { WhatsAppApp } from './components/apps/whatsapp/WhatsAppApp';
+import { DiscordApp } from './components/apps/discord/DiscordApp';
+import { MensajesApp } from './components/apps/mensajes/MensajesApp';
+import { RobloxApp } from './components/apps/roblox/RobloxApp';
+import { GmailApp } from './components/apps/gmail/GmailApp';
+import { CamaraApp } from './components/apps/camara/CamaraApp';
+import { reproducirSonidoDc } from './components/apps/discord/sonidosDc';
+import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
+import { reproducirSonidoRb } from './components/apps/roblox/sonidosRb';
+import { reproducirSonidoGm } from './components/apps/gmail/sonidosGm';
 import { Burbuja } from './components/Burbuja';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
@@ -43,6 +52,20 @@ export default function App() {
   const chat = usePartida((s) => s.chat);
   const chatCargando = usePartida((s) => s.chatCargando);
   const escenario = usePartida((s) => s.escenarioActual());
+
+  // Suena la alerta cada vez que llega un mensaje nuevo del escenario
+  // (tambien con el telefono bloqueado, como en un celular real). Discord
+  // y WhatsApp usan su tono propio; el resto, el del sistema.
+  const idEscenario = escenario?.id;
+  const canalEscenario = escenario?.canal;
+  useEffect(() => {
+    if (fase !== 'mensaje' || !idEscenario) return;
+    if (canalEscenario === 'discord') reproducirSonidoDc('ping');
+    else if (canalEscenario === 'whatsapp') reproducirSonidoWa('notificacion');
+    else if (canalEscenario === 'chat-juego') reproducirSonidoRb('notificacion');
+    else if (canalEscenario === 'correo') reproducirSonidoGm('notificacion');
+    else reproducirSonido('notificacion');
+  }, [fase, idEscenario, canalEscenario]);
 
   const iniciar = usePartida((s) => s.iniciar);
   const responderEscenario = usePartida((s) => s.responderEscenario);
@@ -78,6 +101,74 @@ export default function App() {
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
 
   function contenidoApp(app: AppSimulada) {
+    if (app.id === 'mensajes') {
+      return (
+        <MensajesApp
+          escenario={appDelEscenario?.id === 'mensajes' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
+    if (app.id === 'chat-juego') {
+      return (
+        <RobloxApp
+          escenario={appDelEscenario?.id === 'chat-juego' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
+    if (app.id === 'gmail') {
+      return (
+        <GmailApp
+          escenario={appDelEscenario?.id === 'gmail' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
+    if (app.id === 'discord') {
+      return (
+        <DiscordApp
+          escenario={appDelEscenario?.id === 'discord' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
     if (app.id === 'whatsapp') {
       return (
         <WhatsAppApp
@@ -161,6 +252,12 @@ export default function App() {
     if (telefono.energia === 'encendiendo') {
       return <AnimacionArranque onFin={() => despachar({ tipo: 'FIN_ANIMACION' })} />;
     }
+    // La camara es app del sistema (sin canal) y se evalua antes que el
+    // bloqueo: desde el lock se abre sin desbloquear y al cerrarla se
+    // vuelve al lock, como en iOS.
+    if (telefono.appAbierta === 'camara') {
+      return <CamaraApp onCerrar={() => despachar({ tipo: 'CERRAR_APP' })} />;
+    }
     if (telefono.bloqueado) {
       const notificacionBloqueo =
         enPartida && fase === 'mensaje' && escenario && appDelEscenario
@@ -184,6 +281,7 @@ export default function App() {
           onDesbloquear={desbloquear}
           linterna={linterna}
           onAlternarLinterna={() => setLinterna(!linterna)}
+          onAbrirCamara={() => despachar({ tipo: 'ABRIR_APP', app: 'camara' })}
           notificacion={notificacionBloqueo}
           onAbrirNotificacion={() => {
             desbloquear();
@@ -212,6 +310,7 @@ export default function App() {
         }
         hud={hud}
         onAbrirApp={(app) => despachar({ tipo: 'ABRIR_APP', app: app.id })}
+        onAbrirCamara={() => despachar({ tipo: 'ABRIR_APP', app: 'camara' })}
       />
     );
   }

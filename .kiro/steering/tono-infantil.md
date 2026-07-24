@@ -3,6 +3,19 @@
 > Steering global. Aplica a todo texto visible: escenarios, feedback, botones,
 > pantallas y copy del video. Owner: Clau.
 
+## Dos audiencias
+
+El juego habla al niño; registro, consentimiento, privacidad y configuración
+hablan al padre, madre o tutor. No mezclar ambos tonos.
+
+### Tono para adultos
+
+- Claro, directo y sin infantilizar.
+- Explicar qué dato se pide, para qué, durante cuánto tiempo y cómo retirarlo.
+- No usar patrones oscuros ni marcar consentimientos opcionales por defecto.
+- Distinguir “necesario para jugar”, “IA opcional” y “analítica opcional”.
+- No prometer cumplimiento legal absoluto ni “seguridad total”.
+
 ## La regla de oro
 
 **Enseñamos jugando, no asustando.** Un niño que sale con miedo no aprendió:

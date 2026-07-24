@@ -1,5 +1,11 @@
 # Guía de despliegue paso a paso
 
+> **Guía del despliegue legado del demo.** Sirve para mantener la URL estática y
+> la Lambda Node existente. No usarla para crear el backend nuevo. El backend
+> objetivo se construirá con Terraform siguiendo
+> `../specs/backend-serverless/tasks.md`; hasta entonces no hay comandos de
+> `apply` aprobados para Cognito, API Gateway o DynamoDB.
+
 Owner: **Francis**. Objetivo: URL pública viva el día 4, costo USD 0.
 
 ## 1. Bucket S3 privado

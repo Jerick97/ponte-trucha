@@ -1,5 +1,9 @@
 # Requirements Document
 
+> El banco curado continúa siendo la fuente segura y el fallback. La entrega
+> remota, schemas por app, generación asistida y selección adaptativa pertenecen
+> a `../backend-serverless/`. Apps MVP: Roblox, SMS, email y WhatsApp.
+
 > Banco de escenarios y pipeline de contenido
 
 ## Introduction

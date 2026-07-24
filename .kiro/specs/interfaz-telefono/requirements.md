@@ -1,5 +1,9 @@
 # Requirements Document
 
+> **Prioridad MVP actualizada:** Roblox, SMS, email y WhatsApp. Discord puede
+> permanecer en el demo existente, pero no es requisito del backend inicial.
+> Autenticación y onboarding adulto se especifican por separado.
+
 > Interfaz del teléfono simulado (iPhone con apps)
 
 ## Introduction

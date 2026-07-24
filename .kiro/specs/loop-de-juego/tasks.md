@@ -1,5 +1,9 @@
 # Implementation Plan: Loop de juego y teléfono simulado
 
+> Conservar lo completado. La migración desde estado local al backend no se
+> improvisa aquí; está en `../backend-serverless/tasks.md` y se coordina con
+> Jerick/Clau.
+
 ## Overview
 
 Owner: **Jerick** (UI) con Clau en las reglas de puntaje.
