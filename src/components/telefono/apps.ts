@@ -7,7 +7,7 @@ import type { CanalMensaje } from '../../types/escenario';
 import type { AppId } from './maquina';
 import iconoWhatsapp from '../../assets/img/icon_whatsapp.png';
 import iconoMensajes from '../../assets/img/Icon_message.svg';
-import iconoMail from '../../assets/img/Icon_mail.svg';
+import iconoGmail from '../../assets/img/icon_gmail.svg';
 import iconoDiscord from '../../assets/img/icono_discord.svg';
 import iconoRoblox from '../../assets/img/icono_roblox.svg';
 import iconoCamara from '../../assets/img/Icon_camera.svg';
@@ -66,12 +66,13 @@ export const APPS: readonly AppSimulada[] = [
   },
   {
     id: 'gmail',
-    nombre: 'Mail',
+    nombre: 'Gmail',
     canal: 'correo',
     glifo: '✉️',
-    icono: iconoMail,
-    iconoConFondo: true,
-    claseIcono: 'bg-[var(--color-app-gmail)]',
+    icono: iconoGmail,
+    iconoConFondo: false,
+    // El svg es solo la M multicolor: va sobre la baldosa blanca de iOS.
+    claseIcono: 'bg-[var(--color-telefono)]',
     claseFondo: 'bg-[var(--color-app-gmail-fondo)]',
   },
   {

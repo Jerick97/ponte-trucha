@@ -43,6 +43,8 @@
   /* Acentos del sistema simulado */
   --color-musica: #1ed760;
   --color-flash: #fff291;
+  --color-camara-acento: #ffd60a;
+  --color-led-camara: #32d74b;
 
   /* WhatsApp oscuro (colores oficiales del tema dark de Android) */
   --color-wa-fondo: #0b141a;
@@ -88,6 +90,23 @@
   --color-rb-azul: #3360fd;
   --color-rb-verde: #02b757;
   --color-rb-pildora: #30303a;
+
+  /* Gmail claro (Material 3, como la app oficial 2026) */
+  --color-gm-fondo: #f7f9fc;
+  --color-gm-superficie: #eaeef6;
+  --color-gm-texto: #1f1f1f;
+  --color-gm-texto-suave: #5f6368;
+  --color-gm-rojo: #d93025;
+  --color-gm-azul: #0b57d0;
+  --color-gm-fab: #c6cff7;
+  --color-gm-seleccion: #d3e3fd;
+  --color-gm-naranja: #a85f00;
+  --color-gm-verde: #146c2e;
+  --color-gm-meet: #4a6096;
+  --color-gm-avatar-verde: #12805c;
+  --color-gm-avatar-azul: #1a73e8;
+  --color-gm-avatar-morado: #7c4dff;
+  --color-gm-avatar-naranja: #e8710a;
 
   /* Teclado del sistema (compartido por todas las apps oscuras) */
   --color-teclado-fondo: #131519;

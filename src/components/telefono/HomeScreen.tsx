@@ -22,11 +22,13 @@ interface Props {
   /** HUD de partida (ronda, puntaje, racha) que App decide mostrar o no. */
   hud?: ReactNode;
   onAbrirApp: (app: AppSimulada) => void;
+  /** Abre la app de camara (app del sistema, sin canal). */
+  onAbrirCamara: () => void;
 }
 
 const APPS_DOCK: readonly AppId[] = ['whatsapp', 'mensajes', 'discord', 'gmail'];
 
-export function HomeScreen({ notificacion, hud, onAbrirApp }: Props) {
+export function HomeScreen({ notificacion, hud, onAbrirApp, onAbrirCamara }: Props) {
   const dock = APPS.filter((app) => APPS_DOCK.includes(app.id));
   const grid = APPS.filter((app) => !APPS_DOCK.includes(app.id));
 
@@ -60,19 +62,30 @@ export function HomeScreen({ notificacion, hud, onAbrirApp }: Props) {
             onAbrir={onAbrirApp}
           />
         ))}
-        {DECORATIVAS.map((extra) => (
-          <div key={extra.nombre} aria-hidden="true" className="flex w-16 flex-col items-center gap-1">
-            <img
-              src={extra.icono}
-              alt=""
-              draggable={false}
-              className="h-14 w-14 rounded-[1rem] object-cover shadow-md"
-            />
-            <span className="text-[11px] text-[var(--color-lock-texto)] [text-shadow:0_1px_2px_rgba(0,0,0,.6)]">
-              {extra.nombre}
-            </span>
-          </div>
-        ))}
+        {DECORATIVAS.map((extra) => {
+          // La camara es la unica "decorativa" con app real detras.
+          const esCamara = extra.nombre === 'Camara';
+          const Etiqueta = esCamara ? 'button' : 'div';
+          return (
+            <Etiqueta
+              key={extra.nombre}
+              {...(esCamara
+                ? { type: 'button' as const, onClick: onAbrirCamara, 'aria-label': 'Abrir la cámara' }
+                : { 'aria-hidden': true })}
+              className="flex w-16 flex-col items-center gap-1"
+            >
+              <img
+                src={extra.icono}
+                alt=""
+                draggable={false}
+                className="h-14 w-14 rounded-[1rem] object-cover shadow-md"
+              />
+              <span className="text-[11px] text-[var(--color-lock-texto)] [text-shadow:0_1px_2px_rgba(0,0,0,.6)]">
+                {extra.nombre}
+              </span>
+            </Etiqueta>
+          );
+        })}
       </div>
 
       <div className="mt-auto flex flex-col items-center gap-2 px-3 pb-3">

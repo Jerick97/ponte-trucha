@@ -96,6 +96,16 @@ describe('maquina del telefono: apps', () => {
     expect(estado.bloqueado).toBe(false);
   });
 
+  it('la camara abre desde el bloqueo sin desbloquear y al cerrar vuelve al lock', () => {
+    const conCamara = transicion(ENCENDIDO_BLOQUEADO, { tipo: 'ABRIR_APP', app: 'camara' });
+    expect(conCamara.appAbierta).toBe('camara');
+    expect(conCamara.bloqueado).toBe(true);
+
+    const cerrado = transicion(conCamara, { tipo: 'CERRAR_APP' });
+    expect(cerrado.appAbierta).toBeNull();
+    expect(cerrado.bloqueado).toBe(true);
+  });
+
   it('ABRIR_APP se ignora con el telefono bloqueado, girado o apagado', () => {
     expect(transicion(ESTADO_INICIAL, { tipo: 'ABRIR_APP', app: 'sms' as never })).toBe(
       ESTADO_INICIAL,

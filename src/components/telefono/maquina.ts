@@ -4,8 +4,11 @@
  * FIN_ANIMACION desde un useEffect cuando termina el arranque.
  */
 
-/** Identificador de una app del home. El registro completo vive en apps.ts. */
-export type AppId = 'whatsapp' | 'mensajes' | 'discord' | 'gmail' | 'chat-juego';
+/**
+ * Identificador de una app del home. El registro de apps de canal vive en
+ * apps.ts; 'camara' es app del sistema, sin canal de escenarios.
+ */
+export type AppId = 'whatsapp' | 'mensajes' | 'discord' | 'gmail' | 'chat-juego' | 'camara';
 
 export type Energia = 'apagado' | 'encendiendo' | 'encendido';
 
@@ -62,7 +65,10 @@ export function transicion(estado: EstadoTelefono, evento: EventoTelefono): Esta
       return { ...estado, girado: !estado.girado };
 
     case 'ABRIR_APP':
-      if (estado.energia !== 'encendido' || estado.bloqueado || estado.girado) return estado;
+      if (estado.energia !== 'encendido' || estado.girado) return estado;
+      // La camara se abre desde la pantalla de bloqueo sin desbloquear,
+      // como en iOS; cualquier otra app exige el telefono desbloqueado.
+      if (estado.bloqueado && evento.app !== 'camara') return estado;
       if (estado.appAbierta === evento.app) return estado;
       return { ...estado, appAbierta: evento.app };
 
