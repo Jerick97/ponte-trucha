@@ -252,10 +252,10 @@ export function DetalleJuegoRb({ juego, onCerrar, onAbrirJuego }: Props) {
                 onPointerUp={eventos.alSoltar}
                 onPointerCancel={eventos.alSoltar}
               >
-                {detalle.eventos.map((evento) => (
+                {detalle.eventos.map((evento, _indice, lista) => (
                   <div
                     key={evento.nombre}
-                    className={`${detalle.eventos.length === 1 ? 'w-full' : 'w-[85%]'} shrink-0 overflow-hidden rounded-xl bg-[var(--color-rb-superficie)]`}
+                    className={`${lista.length === 1 ? 'w-full' : 'w-[85%]'} shrink-0 overflow-hidden rounded-xl bg-[var(--color-rb-superficie)]`}
                   >
                     <span className="relative block">
                       <img src={evento.imagen} alt="" draggable={false} className="aspect-video w-full object-cover" />
