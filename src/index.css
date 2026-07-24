@@ -301,6 +301,162 @@
     arranque-zoom 0.6s ease-in 2.3s both;
 }
 
+/* --- Confeti de celebracion (al acertar) --------------------------- */
+.confeti {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+}
+.confeti-pieza {
+  position: absolute;
+  top: 0;
+  border-radius: 2px;
+  animation-name: confeti-cae;
+  animation-timing-function: cubic-bezier(0.3, 0.7, 0.5, 1);
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+}
+@keyframes confeti-cae {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, -16px, 0) rotate(var(--giro, 0deg));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 820px, 0) rotate(calc(var(--giro, 0deg) + 540deg));
+  }
+}
+
+/* Racha "encendida": late suave a partir de 3 aciertos seguidos. */
+@keyframes racha-late {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.14);
+  }
+}
+.racha-encendida {
+  animation: racha-late 0.9s ease-in-out infinite;
+}
+
+/* --- Mascota de racha (el pez que celebra al acertar) -------------- */
+.mascota-racha {
+  position: absolute;
+  left: 50%;
+  top: 32%;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.mascota-racha__pez {
+  line-height: 1;
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.3));
+  animation: mascota-salta 1.5s ease-in-out both;
+}
+.mascota-racha__combo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--color-nivel-despierto);
+  text-shadow: 0 2px 6px rgb(0 0 0 / 0.4);
+  animation: combo-aparece 1.5s ease-out both;
+}
+.mascota-racha--1 .mascota-racha__pez {
+  font-size: 2.6rem;
+}
+.mascota-racha--2 .mascota-racha__pez {
+  font-size: 3.4rem;
+}
+.mascota-racha--3 .mascota-racha__pez {
+  font-size: 4.4rem;
+}
+.mascota-racha--1 .mascota-racha__combo {
+  font-size: 1rem;
+}
+.mascota-racha--2 .mascota-racha__combo {
+  font-size: 1.4rem;
+}
+.mascota-racha--3 .mascota-racha__combo {
+  font-size: 1.9rem;
+}
+@keyframes mascota-salta {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) translateY(24px) rotate(-12deg);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.25) translateY(-12px) rotate(6deg);
+  }
+  36% {
+    transform: scale(1) translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: scale(1.05) translateY(-4px) rotate(0deg);
+  }
+  72% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(-10px);
+  }
+}
+@keyframes combo-aparece {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  40% {
+    transform: scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(1);
+  }
+}
+
+/* Revelacion del nivel de trucha en la pantalla final (subir de nivel). */
+@keyframes nivel-revela {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-10deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.2) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+.nivel-revela {
+  animation: nivel-revela 0.9s cubic-bezier(0.2, 0.8, 0.3, 1.2) both;
+}
+
+/* Con menos movimiento, el confeti y la mascota no aparecen. */
+@media (prefers-reduced-motion: reduce) {
+  .confeti,
+  .mascota-racha {
+    display: none;
+  }
+}
+
 html,
 body,
 #root {

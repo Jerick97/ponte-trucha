@@ -3,7 +3,7 @@
  * fases de la partida (que se ve). Ninguna regla de juego vive aqui.
  */
 
-import { useEffect, useReducer, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { ESTADO_INICIAL, transicion } from './components/telefono/maquina';
 import { precargarIconos } from './components/telefono/precargarIconos';
 import { reproducirSonido } from './components/telefono/sonidos';
@@ -26,6 +26,9 @@ import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
 import { reproducirSonidoRb } from './components/apps/roblox/sonidosRb';
 import { reproducirSonidoGm } from './components/apps/gmail/sonidosGm';
 import { Burbuja } from './components/Burbuja';
+import { Confetti } from './components/Confetti';
+import { MascotaRacha } from './components/MascotaRacha';
+import { reproducirSonidoRacha, reproducirSonidoRachaRota } from './components/sonidoRacha';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
 import { ChatEstafador } from './components/ChatEstafador';
@@ -41,6 +44,8 @@ export default function App() {
   const [telefono, despachar] = useReducer(transicion, ESTADO_INICIAL);
   // Linterna: el boton vive en el lock y el flash en la parte trasera.
   const [linterna, setLinterna] = useState(false);
+  // Cuantos aciertos ya festejamos, para no repetir el sonido en re-renders.
+  const celebradas = useRef(0);
 
   // Los iconos se descargan mientras el nino ve la pantalla apagada.
   useEffect(precargarIconos, []);
@@ -66,6 +71,27 @@ export default function App() {
     else if (canalEscenario === 'correo') reproducirSonidoGm('notificacion');
     else reproducirSonido('notificacion');
   }, [fase, idEscenario, canalEscenario]);
+
+  // Sonido de racha (tipo combo): suena una vez por acierto, subiendo de
+  // tono con la racha. Se apoya en la cantidad de resultados para no repetir.
+  useEffect(() => {
+    const n = partida.resultados.length;
+    if (n === 0) {
+      celebradas.current = 0;
+      return;
+    }
+    if (n !== celebradas.current && fase === 'feedback') {
+      celebradas.current = n;
+      const ultimo = partida.resultados[n - 1];
+      if (ultimo.acerto) {
+        reproducirSonidoRacha(partida.racha);
+      } else {
+        // Solo suena el "se apago la racha" si venia una racha que valia la pena.
+        const rachaPrevia = partida.resultados[n - 2]?.rachaDespues ?? 0;
+        if (rachaPrevia >= 3) reproducirSonidoRachaRota();
+      }
+    }
+  }, [partida.resultados, partida.racha, fase]);
 
   const iniciar = usePartida((s) => s.iniciar);
   const responderEscenario = usePartida((s) => s.responderEscenario);
@@ -99,6 +125,10 @@ export default function App() {
 
   const ultimoResultado = partida.resultados[partida.resultados.length - 1];
   const turnosDelNino = chat.filter((t) => t.autor === 'nino').length;
+
+  // Confeti al acertar: mas piezas cuanto mas larga la racha.
+  const celebrar = fase === 'feedback' && ultimoResultado?.acerto === true;
+  const piezasConfeti = 22 + Math.min(partida.racha, 6) * 6;
 
   function contenidoApp(app: AppSimulada) {
     if (app.id === 'mensajes') {
@@ -330,6 +360,8 @@ export default function App() {
         }}
       >
         {pantalla()}
+        {celebrar && <Confetti key={escenario?.id ?? 'confeti'} piezas={piezasConfeti} />}
+        {celebrar && <MascotaRacha key={`m-${escenario?.id ?? 'x'}`} racha={partida.racha} />}
       </Iphone>
     </div>
   );
