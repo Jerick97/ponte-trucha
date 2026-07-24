@@ -79,6 +79,16 @@
   --color-sms-avatar-arriba: #a7adba;
   --color-sms-avatar-abajo: #858c9b;
 
+  /* Roblox oscuro (colores de la app oficial 2026) */
+  --color-rb-fondo: #111216;
+  --color-rb-superficie: #1e2025;
+  --color-rb-superficie-alta: #2a2c32;
+  --color-rb-texto: #f4f5f6;
+  --color-rb-texto-suave: #96999e;
+  --color-rb-azul: #3360fd;
+  --color-rb-verde: #02b757;
+  --color-rb-pildora: #30303a;
+
   /* Teclado del sistema (compartido por todas las apps oscuras) */
   --color-teclado-fondo: #131519;
   --color-teclado-tecla: #26282e;

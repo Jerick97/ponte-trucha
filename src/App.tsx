@@ -18,8 +18,10 @@ import { VistaApp } from './components/apps/VistaApp';
 import { WhatsAppApp } from './components/apps/whatsapp/WhatsAppApp';
 import { DiscordApp } from './components/apps/discord/DiscordApp';
 import { MensajesApp } from './components/apps/mensajes/MensajesApp';
+import { RobloxApp } from './components/apps/roblox/RobloxApp';
 import { reproducirSonidoDc } from './components/apps/discord/sonidosDc';
 import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
+import { reproducirSonidoRb } from './components/apps/roblox/sonidosRb';
 import { Burbuja } from './components/Burbuja';
 import { BarraDecision } from './components/BarraDecision';
 import { TarjetaFeedback } from './components/TarjetaFeedback';
@@ -57,6 +59,7 @@ export default function App() {
     if (fase !== 'mensaje' || !idEscenario) return;
     if (canalEscenario === 'discord') reproducirSonidoDc('ping');
     else if (canalEscenario === 'whatsapp') reproducirSonidoWa('notificacion');
+    else if (canalEscenario === 'chat-juego') reproducirSonidoRb('notificacion');
     else reproducirSonido('notificacion');
   }, [fase, idEscenario, canalEscenario]);
 
@@ -98,6 +101,23 @@ export default function App() {
       return (
         <MensajesApp
           escenario={appDelEscenario?.id === 'mensajes' && escenario ? escenario : null}
+          fase={fase}
+          ultimoResultado={ultimoResultado ?? null}
+          turnos={chat}
+          chatCargando={chatCargando}
+          chatAgotado={turnosDelNino >= MAX_TURNOS_CHAT}
+          onResponder={responderEscenario}
+          onChatear={abrirChat}
+          onSiguiente={avanzar}
+          onEnviar={enviarMensajeAlEstafador}
+          onCerrar={() => despachar({ tipo: 'CERRAR_APP' })}
+        />
+      );
+    }
+    if (app.id === 'chat-juego') {
+      return (
+        <RobloxApp
+          escenario={appDelEscenario?.id === 'chat-juego' && escenario ? escenario : null}
           fase={fase}
           ultimoResultado={ultimoResultado ?? null}
           turnos={chat}

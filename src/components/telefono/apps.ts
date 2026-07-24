@@ -81,7 +81,8 @@ export const APPS: readonly AppSimulada[] = [
     glifo: '🧱',
     icono: iconoRoblox,
     iconoConFondo: false,
-    claseIcono: 'bg-[var(--color-carcasa)]',
+    // Azul actual del icono oficial (antes era negro).
+    claseIcono: 'bg-[var(--color-rb-azul)]',
     claseFondo: 'bg-[var(--color-app-chat-juego-fondo)]',
   },
 ];
