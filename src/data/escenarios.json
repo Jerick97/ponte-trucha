@@ -231,6 +231,7 @@
         "avatar": "🎧",
         "verificado": false
       },
+      "asunto": "Tu cuenta Roblox será suspendida hoy",
       "mensaje": "Tu cuenta será suspendida hoy. Detectamos actividad rara y para salvarla debes responder este correo con tu usuario y tu clave. Si no respondes antes de las 6pm, se borra para siempre.",
       "respuestaCorrecta": "trampa",
       "senales": [
@@ -261,6 +262,7 @@
         "avatar": "🎁",
         "verificado": false
       },
+      "asunto": "¡Ganaste una tarjeta de juego de $50!",
       "mensaje": "¡Ganaste una tarjeta de juego de $50! Fuiste elegido entre todos los visitantes de la tienda. Responde hoy mismo con tu nombre completo y tu dirección para mandarte el premio, o pasa al siguiente ganador.",
       "respuestaCorrecta": "trampa",
       "senales": [
@@ -286,6 +288,7 @@
         "avatar": "📚",
         "verificado": false
       },
+      "asunto": "Recordatorio: feria de ciencias del viernes",
       "mensaje": "¡Hola chicos! Les recuerdo que el viernes es la feria de ciencias. Traigan su maqueta terminada y vengan con el polo del colegio. Los esperamos en el patio a las 9.",
       "respuestaCorrecta": "confianza",
       "senales": [

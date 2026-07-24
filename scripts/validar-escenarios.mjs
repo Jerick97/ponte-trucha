@@ -88,7 +88,15 @@ for (const escenario of banco.escenarios) {
     errores.push(`[${id}] un escenario legitimo no puede permitir conversacion con estafador`);
   }
 
-  // 5. Leccion en lenguaje de nino: frase corta.
+  // 5. El canal correo debe traer asunto; ningun otro canal lo usa.
+  if (escenario.canal === 'correo' && !escenario.asunto) {
+    errores.push(`[${id}] un escenario de canal "correo" debe incluir "asunto"`);
+  }
+  if (escenario.canal !== 'correo' && escenario.asunto !== undefined) {
+    errores.push(`[${id}] "asunto" solo aplica al canal "correo"`);
+  }
+
+  // 6. Leccion en lenguaje de nino: frase corta.
   if (typeof escenario.leccion === 'string' && escenario.leccion.split(' ').length > 18) {
     avisos.push(`[${id}] la leccion tiene mas de 18 palabras, revisar que siga sonando a nino`);
   }

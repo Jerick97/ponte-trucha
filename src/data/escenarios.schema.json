@@ -58,6 +58,7 @@
           }
         },
         "mensaje": { "type": "string", "minLength": 10, "maxLength": 240 },
+        "asunto": { "type": "string", "minLength": 3, "maxLength": 80 },
         "respuestaCorrecta": { "type": "string", "enum": ["trampa", "confianza"] },
         "senales": {
           "type": "array",

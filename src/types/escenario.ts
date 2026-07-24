@@ -56,6 +56,12 @@ export interface Escenario {
   remitente: Remitente;
   /** Cuerpo del mensaje que ve el nino. Maximo 240 caracteres. */
   mensaje: string;
+  /**
+   * Asunto del correo. Obligatorio cuando canal === 'correo' (lo exige el
+   * validador); en los demas canales no se usa. La app Gmail lo muestra como
+   * asunto del correo abierto en vez de derivarlo de la primera oracion.
+   */
+  asunto?: string;
   /** Respuesta correcta. Debe ser 'confianza' si y solo si tipo === 'legitimo'. */
   respuestaCorrecta: Veredicto;
   /** Senales que se resaltan en el feedback. Minimo 1. */
