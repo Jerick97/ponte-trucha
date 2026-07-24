@@ -3,8 +3,11 @@
  * Es la pantalla que sale en el video, asi que merece el mejor pulido visual.
  */
 
+import { useEffect } from 'react';
 import type { EstadoPartida } from '../game/motor';
 import { porcentajeAciertos, type NivelTrucha } from '../game/nivelTrucha';
+import { Confetti } from './Confetti';
+import { reproducirFanfarria } from './sonidoRacha';
 
 interface Props {
   partida: EstadoPartida;
@@ -14,6 +17,11 @@ interface Props {
 
 export function PantallaResultado({ partida, nivel, onReiniciar }: Props) {
   const porcentaje = porcentajeAciertos(partida);
+
+  // Fanfarria de victoria al llegar a la pantalla final (una sola vez).
+  useEffect(() => {
+    reproducirFanfarria();
+  }, []);
 
   async function compartir() {
     const texto = `Soy nivel ${nivel.titulo} ${nivel.emoji} en Ponte Trucha Kids: ${porcentaje}% de estafas detectadas. ¿Te atreves?`;
@@ -25,9 +33,13 @@ export function PantallaResultado({ partida, nivel, onReiniciar }: Props) {
   }
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-5 text-center">
-      <p className="text-7xl" aria-hidden>
+    <div className="relative flex h-full flex-col items-center justify-center gap-5 text-center">
+      <Confetti piezas={44} />
+      <p className="nivel-revela text-7xl" aria-hidden>
         {nivel.emoji}
+      </p>
+      <p className="nivel-revela text-sm font-bold uppercase tracking-widest text-[var(--color-nivel-despierto)]">
+        ¡Subiste de nivel!
       </p>
       <div>
         <p className="text-sm uppercase tracking-widest text-[var(--color-texto-suave)]">
