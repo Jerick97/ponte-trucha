@@ -50,9 +50,11 @@ Tareas centrales: 12 · Opcionales: 4 · Estimado: 2 noches + sábado de pulido.
   - Partir el texto por fragmentos literales, en orden de aparición
   - _Requisitos: 1.4, 3.1_
 
-- [ ] 8. Aplicar el tratamiento visual por canal
+- [x] 8. Aplicar el tratamiento visual por canal
   - Variantes para `chat-juego`, `whatsapp`, `sms`, `discord`
   - Cambiar header, color de burbuja y tipografía según el canal
+  - Absorbida por la spec `interfaz-telefono`: Jerick construyó apps completas
+    para los 5 canales (WhatsApp, Discord, Mensajes/SMS, Gmail, Roblox)
   - _Requisitos: 1.3_
 
 ### Fase 3: Loop completo
