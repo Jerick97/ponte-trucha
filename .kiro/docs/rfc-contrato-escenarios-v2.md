@@ -385,3 +385,57 @@ Con la Fase 1 aprobada, generar una spec nueva (sugerido: `enriquecimiento-aditi
 con `requirements.md` en formato EARS, marcando cada requisito como aditivo y con
 su criterio de "no rompe lo existente" (tests de motor y guardrails en verde,
 UI de Jerick sin cambios en Fase 1).
+
+## 11. Adenda: campo `asunto?` para el canal `correo` (Gmail)
+
+Origen: aviso de Jerick tras construir la app de Gmail (`feature/app-gmail`, ya en
+`main`). El canal `correo` se renderiza como Gmail (bandeja + correo abierto). El
+`id` interno del canal sigue siendo `correo`: **no cambia el backend ni el
+contrato existente**.
+
+### 11.1 Problema
+
+Un correo real tiene **asunto**, pero el contrato (`Escenario`) no lo tiene. Hoy
+Jerick lo deriva de la primera oración del `mensaje`. Funciona para unos casos y
+falla para otros:
+
+- `correo-soporte-pide-clave` → asunto derivado "Tu cuenta será suspendida hoy"
+  (buen gancho, sirve).
+- `correo-colegio-feria` → asunto derivado "¡Hola chicos!" (flojo, no parece
+  asunto de correo).
+
+### 11.2 Propuesta (aditiva, opcional)
+
+Agregar un campo **opcional** al contrato, en la misma línea que ya se hizo con
+`correo` (extensión aditiva, no reemplazo):
+
+```ts
+interface Escenario {
+  // ...campos actuales...
+  /** Asunto del correo. Solo aplica al canal 'correo'. Si falta, la UI lo
+   *  deriva de la primera oración del mensaje (comportamiento actual). */
+  asunto?: string;
+}
+```
+
+- **No rompe nada**: los escenarios que no lo definan siguen con el fallback
+  actual. Los demás canales lo ignoran.
+- **Toca**: `src/types/escenario.ts`, `src/data/escenarios.schema.json`
+  (`asunto` opcional, `maxLength` sugerido 80) y el validador
+  (`scripts/validar-escenarios.mjs`): si el escenario **no** es `correo` y trae
+  `asunto`, avisar; opcionalmente, exigir `asunto` cuando `canal === 'correo'`.
+- **Aviso a Francis (backend):** el contrato es la fuente de verdad del OpenAPI.
+  Aunque la Lambda no usa `asunto` (solo `escenarioId`, `mensajeOriginal`,
+  `perfilEstafador`, `historial`), el cambio de contrato se le comunica para
+  mantener el OpenAPI sincronizado.
+- **Aviso a Clau (contenido):** con `asunto?` disponible, conviene escribir
+  asuntos propios al menos para los 3 escenarios de `correo`, sobre todo el
+  legítimo del colegio.
+
+### 11.3 Decisión pendiente
+
+¿`asunto` opcional en todo el banco, o **obligatorio cuando `canal === 'correo'`**?
+Lo segundo es más limpio (todo correo tiene asunto de verdad) pero obliga a
+tocar los 3 escenarios de correo ya existentes. Recomendación: opcional en el
+contrato + **aviso** del validador para correos sin asunto, así no se rompe nada
+y se empuja a completarlos.
