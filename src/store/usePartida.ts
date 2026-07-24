@@ -11,6 +11,8 @@ import banco from '../data/escenarios.json';
 import type { BancoEscenarios, Escenario, Veredicto } from '../types/escenario';
 import { armarRonda, crearPartida, responder, type EstadoPartida } from '../game/motor';
 import { calcularNivel, type NivelTrucha } from '../game/nivelTrucha';
+import { calcularMedallas, type Medalla } from '../game/medallas';
+import { guardarSiEsMejor } from './record';
 import { obtenerProveedor, type TurnoChat } from '../llm';
 
 const BANCO = banco as BancoEscenarios;
@@ -25,6 +27,8 @@ interface EstadoStore {
   ultimaRespuesta: Veredicto | null;
   chat: TurnoChat[];
   chatCargando: boolean;
+  /** Si la partida recien terminada supero el record guardado. */
+  esRecord: boolean;
 
   iniciar: () => void;
   responderEscenario: (respuesta: Veredicto) => void;
@@ -35,6 +39,7 @@ interface EstadoStore {
 
   escenarioActual: () => Escenario | null;
   nivelFinal: () => NivelTrucha;
+  medallasFinales: () => Medalla[];
 }
 
 /** Cuantos turnos puede durar la conversacion con el estafador. */
@@ -48,6 +53,7 @@ export const usePartida = create<EstadoStore>((set, get) => ({
   ultimaRespuesta: null,
   chat: [],
   chatCargando: false,
+  esRecord: false,
 
   iniciar: () => {
     set({
@@ -57,6 +63,7 @@ export const usePartida = create<EstadoStore>((set, get) => ({
       partida: crearPartida(),
       ultimaRespuesta: null,
       chat: [],
+      esRecord: false,
     });
   },
 
@@ -71,10 +78,12 @@ export const usePartida = create<EstadoStore>((set, get) => ({
   },
 
   siguiente: () => {
-    const { indice, ronda } = get();
+    const { indice, ronda, partida } = get();
     const siguienteIndice = indice + 1;
     if (siguienteIndice >= ronda.length) {
-      set({ fase: 'resultado' });
+      // Fin de la partida: persiste el record en el dispositivo (localStorage).
+      const esRecord = guardarSiEsMejor(partida, calcularNivel(partida));
+      set({ fase: 'resultado', esRecord });
       return;
     }
     set({ indice: siguienteIndice, fase: 'mensaje', ultimaRespuesta: null, chat: [] });
@@ -98,7 +107,8 @@ export const usePartida = create<EstadoStore>((set, get) => ({
     });
   },
 
-  reiniciar: () => set({ fase: 'inicio', ronda: [], indice: 0, partida: crearPartida(), chat: [] }),
+  reiniciar: () =>
+    set({ fase: 'inicio', ronda: [], indice: 0, partida: crearPartida(), chat: [], esRecord: false }),
 
   escenarioActual: () => {
     const { ronda, indice } = get();
@@ -106,4 +116,6 @@ export const usePartida = create<EstadoStore>((set, get) => ({
   },
 
   nivelFinal: () => calcularNivel(get().partida),
+
+  medallasFinales: () => calcularMedallas(get().partida, get().ronda),
 }));

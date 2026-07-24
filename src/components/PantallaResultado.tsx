@@ -6,16 +6,19 @@
 import { useEffect } from 'react';
 import type { EstadoPartida } from '../game/motor';
 import { porcentajeAciertos, type NivelTrucha } from '../game/nivelTrucha';
+import type { Medalla } from '../game/medallas';
 import { Confetti } from './Confetti';
 import { reproducirFanfarria } from './sonidoRacha';
 
 interface Props {
   partida: EstadoPartida;
   nivel: NivelTrucha;
+  medallas: Medalla[];
+  esRecord: boolean;
   onReiniciar: () => void;
 }
 
-export function PantallaResultado({ partida, nivel, onReiniciar }: Props) {
+export function PantallaResultado({ partida, nivel, medallas, esRecord, onReiniciar }: Props) {
   const porcentaje = porcentajeAciertos(partida);
 
   // Fanfarria de victoria al llegar a la pantalla final (una sola vez).
@@ -50,7 +53,28 @@ export function PantallaResultado({ partida, nivel, onReiniciar }: Props) {
         </h2>
       </div>
 
+      {esRecord && (
+        <p className="nivel-revela rounded-full bg-[var(--color-nivel-despierto)] px-4 py-1 text-sm font-bold text-white">
+          🏆 ¡Nuevo récord!
+        </p>
+      )}
+
       <p className="max-w-[280px] text-[15px] text-[var(--color-texto-suave)]">{nivel.frase}</p>
+
+      {medallas.length > 0 && (
+        <ul className="flex max-w-[280px] flex-wrap justify-center gap-2">
+          {medallas.map((m) => (
+            <li
+              key={m.clave}
+              title={m.detalle}
+              className="flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-semibold shadow-sm"
+            >
+              <span aria-hidden="true">{m.emoji}</span>
+              {m.titulo}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <dl className="grid w-full max-w-[280px] grid-cols-3 gap-2">
         <div className="rounded-2xl bg-white p-3 shadow-sm">

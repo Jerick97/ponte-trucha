@@ -5,6 +5,8 @@
  * recursos externos.
  */
 
+import { estaSilenciado } from '../../store/audio';
+
 export type SonidoSistema = 'encendido' | 'apagado' | 'bloqueo' | 'notificacion' | 'obturador';
 
 const archivos = import.meta.glob('../../assets/audio/sonidos/*.{mp3,ogg,m4a,wav}', {
@@ -42,6 +44,7 @@ const SONIDOS: Partial<Record<SonidoSistema, string>> = {
  * usuario, asi que en la practica suena).
  */
 export function reproducirSonido(sonido: SonidoSistema) {
+  if (estaSilenciado()) return;
   const src = SONIDOS[sonido];
   if (!src) return;
   const audio = new Audio(src);

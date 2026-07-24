@@ -7,12 +7,15 @@
  * navegador no soporta AudioContext o bloquea el audio.
  */
 
+import { estaSilenciado } from '../store/audio';
+
 type TipoOnda = OscillatorType;
 
 let ctx: AudioContext | null = null;
 
 function contexto(): AudioContext | null {
   if (typeof window === 'undefined') return null;
+  if (estaSilenciado()) return null;
   const AC =
     window.AudioContext ??
     (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;

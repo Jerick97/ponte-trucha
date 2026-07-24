@@ -35,6 +35,8 @@ import { ChatEstafador } from './components/ChatEstafador';
 import { Hud } from './components/Hud';
 import { PantallaResultado } from './components/PantallaResultado';
 import { MAX_TURNOS_CHAT, usePartida } from './store/usePartida';
+import { useAudio } from './store/audio';
+import { leerRecord } from './store/record';
 
 function prefiereMenosMovimiento(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -100,6 +102,11 @@ export default function App() {
   const enviarMensajeAlEstafador = usePartida((s) => s.enviarMensajeAlEstafador);
   const reiniciar = usePartida((s) => s.reiniciar);
   const nivelFinal = usePartida((s) => s.nivelFinal);
+  const medallasFinales = usePartida((s) => s.medallasFinales);
+  const esRecord = usePartida((s) => s.esRecord);
+
+  const silenciado = useAudio((s) => s.silenciado);
+  const alternarSilencio = useAudio((s) => s.alternar);
 
   const enPartida = fase === 'mensaje' || fase === 'feedback' || fase === 'chat';
   const appDelEscenario = enPartida && escenario ? appPorCanal(escenario.canal) : null;
@@ -303,7 +310,12 @@ export default function App() {
             ? {
                 titulo: 'Ponte Trucha',
                 app: 'Ponte Trucha',
-                texto: 'Desliza hacia arriba y aprende a detectar mensajes trucha',
+                texto: (() => {
+                  const record = leerRecord();
+                  return record
+                    ? `Tu récord: ${record.nivelEmoji} ${record.nivelTitulo} · ${record.puntaje} pts. ¡Supéralo!`
+                    : 'Desliza hacia arriba y aprende a detectar mensajes trucha';
+                })(),
               }
             : null;
       return (
@@ -325,7 +337,13 @@ export default function App() {
         <div className="wallpaper flex h-full flex-col">
           <StatusBar claro />
           <div className="min-h-0 flex-1 overflow-y-auto">
-            <PantallaResultado partida={partida} nivel={nivelFinal()} onReiniciar={jugarOtraVez} />
+            <PantallaResultado
+              partida={partida}
+              nivel={nivelFinal()}
+              medallas={medallasFinales()}
+              esRecord={esRecord}
+              onReiniciar={jugarOtraVez}
+            />
           </div>
         </div>
       );
@@ -346,7 +364,16 @@ export default function App() {
   }
 
   return (
-    <div className="h-full py-2">
+    <div className="relative h-full py-2">
+      <button
+        type="button"
+        onClick={alternarSilencio}
+        aria-label={silenciado ? 'Activar sonido' : 'Silenciar sonido'}
+        aria-pressed={silenciado}
+        className="absolute right-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-carcasa)] text-base opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--color-marca-500)]"
+      >
+        <span aria-hidden="true">{silenciado ? '🔇' : '🔊'}</span>
+      </button>
       <Iphone
         girado={telefono.girado}
         arrancando={telefono.energia === 'encendiendo'}
