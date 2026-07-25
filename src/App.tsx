@@ -37,6 +37,8 @@ import { PantallaResultado } from './components/PantallaResultado';
 import { MAX_TURNOS_CHAT, usePartida } from './store/usePartida';
 import { useAudio } from './store/audio';
 import { leerRecord } from './store/record';
+import { Onboarding } from './components/onboarding/Onboarding';
+import { useSesion } from './store/sesion';
 
 function prefiereMenosMovimiento(): boolean {
   return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches === true;
@@ -107,6 +109,9 @@ export default function App() {
 
   const silenciado = useAudio((s) => s.silenciado);
   const alternarSilencio = useAudio((s) => s.alternar);
+
+  // El telefono solo aparece cuando el adulto completo el onboarding.
+  const pasoSesion = useSesion((s) => s.paso);
 
   const enPartida = fase === 'mensaje' || fase === 'feedback' || fase === 'chat';
   const appDelEscenario = enPartida && escenario ? appPorCanal(escenario.canal) : null;
@@ -360,6 +365,18 @@ export default function App() {
         onAbrirApp={(app) => despachar({ tipo: 'ABRIR_APP', app: app.id })}
         onAbrirCamara={() => despachar({ tipo: 'ABRIR_APP', app: 'camara' })}
       />
+    );
+  }
+
+  // Landing y onboarding adulto. El early return va DESPUES de todos los hooks
+  // a proposito: asi el orden de hooks nunca cambia entre renders. Los efectos
+  // del juego quedan inertes mientras `fase` sigue en 'inicio', y de paso los
+  // iconos del telefono se precargan mientras el adulto lee.
+  if (pasoSesion !== 'jugando') {
+    return (
+      <div className="ad-escena">
+        <Onboarding />
+      </div>
     );
   }
 

@@ -126,10 +126,33 @@
   --color-app-chat-juego: #7c3aed;
   --color-app-chat-juego-fondo: #f2ecfd;
 
+  /* Onboarding adulto: superficie editorial oscura, deliberadamente distinta
+     del mundo claro del juego. El adulto lee y decide; el nino juega.
+     Contrastes verificados contra --color-ad-fondo (WCAG 2.2 AA). */
+  --color-ad-fondo: #0a0d1c;
+  --color-ad-superficie: #121732;
+  --color-ad-superficie-alta: #1b2145;
+  --color-ad-borde: #2a3160;
+  --color-ad-texto: #eef1fb;
+  --color-ad-texto-suave: #9aa3c7;
+  --color-ad-texto-tenue: #7c85ab;
+  /* El azul de marca sirve de relleno; para TEXTO sobre oscuro va el claro. */
+  --color-ad-acento: #2f6bff;
+  --color-ad-acento-claro: #7ba3ff;
+  /* CTA en ambar: es el color "ponte trucha" y el UNICO relleno ambar de la
+     pagina, asi el ojo va directo a la accion. Texto oscuro: 8.6:1 (AA). */
+  --color-ad-cta: #f5a524;
+  --color-ad-cta-claro: #ffc75e;
+  --color-ad-cta-texto: #221302;
+
   --radius-telefono: 2.5rem;
   --radius-burbuja: 1.25rem;
 
   --font-display: 'Baloo 2', system-ui, sans-serif;
+  /* Serif de sistema para el lado adulto: da seriedad editorial sin descargar
+     ni una fuente externa (nada de fonts.googleapis.com recibiendo IPs). */
+  --font-editorial: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
+    serif;
 }
 
 /* --- Telefono simulado: 3D y arranque ------------------------------- */
@@ -454,6 +477,605 @@
   .confeti,
   .mascota-racha {
     display: none;
+  }
+}
+
+/* --- Onboarding adulto: landing, age gate, acceso, consentimiento --------
+ *
+ * Direccion visual: editorial oscuro. Serif para titulares, sans para leer,
+ * un solo acento azul y ambar para lo opcional. Es el contraario del telefono
+ * (claro, redondo, colorido) a proposito: cuando termina el onboarding y
+ * aparece el celular, el salto se siente como "ahora empieza el juego".
+ */
+
+.ad-escena {
+  position: relative;
+  min-height: 100%;
+  overflow-x: hidden;
+  /* Controles nativos (select, autofill, scrollbars) en su variante oscura:
+     sin esto el desplegable del mes aparece blanco y rompe la escena. */
+  color-scheme: dark;
+  background-color: var(--color-ad-fondo);
+  background-image:
+    radial-gradient(ellipse 70% 50% at 12% -5%, rgb(47 107 255 / 0.28), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 92% 8%, rgb(124 58 237 / 0.2), transparent 70%),
+    radial-gradient(ellipse 60% 45% at 50% 105%, rgb(47 107 255 / 0.12), transparent 70%);
+  color: var(--color-ad-texto);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* Grano: le quita el acabado plastico al gradiente. SVG inline, sin peticiones. */
+.ad-escena::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Rejilla tenue: da estructura editorial sin llamar la atencion. */
+.ad-escena::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, rgb(122 138 200 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(122 138 200 / 0.07) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black, transparent 75%);
+}
+
+.ad-contenido {
+  position: relative;
+  z-index: 1;
+}
+
+/* Titular editorial: serif, apretado y grande. */
+.ad-display {
+  font-family: var(--font-editorial);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+/* Etiqueta de seccion en versalitas espaciadas. */
+.ad-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-ad-texto-tenue);
+}
+
+/* Numero de paso: cifra serif grande y tenue, como en una revista. */
+.ad-numero {
+  font-family: var(--font-editorial);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ad-acento-claro);
+}
+
+/* Filete de acento bajo un titular. */
+.ad-filete {
+  width: 2.75rem;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(to right, var(--color-ad-acento-claro), transparent);
+}
+
+/* --- Entrada escalonada -------------------------------------------------- */
+
+@keyframes ad-sube {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ad-revela {
+  animation: ad-sube 0.62s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 85ms);
+}
+
+/* --- Superficies --------------------------------------------------------- */
+
+.ad-tarjeta {
+  border: 1px solid var(--color-ad-borde);
+  border-radius: 1.125rem;
+  background: linear-gradient(
+    160deg,
+    rgb(27 33 69 / 0.9) 0%,
+    rgb(18 23 50 / 0.82) 60%,
+    rgb(12 16 38 / 0.9) 100%
+  );
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+    0 22px 55px -30px rgb(0 0 0 / 0.9);
+}
+
+/* --- Botones ------------------------------------------------------------- */
+
+.ad-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.8125rem 1.625rem;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.22s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.ad-boton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+/* Primario deshabilitado: superficie neutra en vez de ambar apagado. El oro
+   "sucio" parece un boton roto; el gris dice claramente "aun te falta algo". */
+.ad-boton--primario:disabled {
+  opacity: 1;
+  background: var(--color-ad-superficie-alta);
+  border: 1px solid var(--color-ad-borde);
+  color: var(--color-ad-texto-tenue);
+  box-shadow: none;
+}
+
+.ad-boton--primario {
+  background: linear-gradient(to bottom, var(--color-ad-cta-claro), var(--color-ad-cta));
+  color: var(--color-ad-cta-texto);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.45) inset,
+    0 12px 32px -12px rgb(245 165 36 / 0.65);
+}
+
+.ad-boton--primario:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(to bottom, #ffd583, var(--color-ad-cta));
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.5) inset,
+    0 18px 42px -12px rgb(245 165 36 / 0.8);
+}
+
+.ad-boton--fantasma {
+  background: transparent;
+  border: 1px solid var(--color-ad-borde);
+  color: var(--color-ad-texto);
+}
+
+.ad-boton--fantasma:hover:not(:disabled) {
+  border-color: var(--color-ad-acento-claro);
+  background: rgb(47 107 255 / 0.1);
+}
+
+/* Foco visible unificado y siempre por encima del fondo. */
+.ad-escena :is(button, input, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ad-acento-claro);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+
+/* --- Campos -------------------------------------------------------------- */
+
+.ad-campo {
+  width: 100%;
+  border: 1px solid var(--color-ad-borde);
+  border-radius: 0.75rem;
+  background: rgb(8 11 26 / 0.72);
+  padding: 0.75rem 0.9375rem;
+  color: var(--color-ad-texto);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease;
+}
+
+.ad-campo::placeholder {
+  color: var(--color-ad-texto-tenue);
+}
+
+.ad-campo:hover {
+  border-color: #3a4278;
+}
+
+.ad-campo:focus {
+  border-color: var(--color-ad-acento-claro);
+  background: rgb(8 11 26 / 0.95);
+}
+
+.ad-campo--invalido {
+  border-color: var(--color-trampa);
+}
+
+/* --- Interruptor de consentimiento --------------------------------------- */
+
+.ad-switch {
+  position: relative;
+  flex: none;
+  width: 2.875rem;
+  height: 1.625rem;
+  border: 1px solid var(--color-ad-borde);
+  border-radius: 999px;
+  background: rgb(8 11 26 / 0.85);
+  cursor: pointer;
+  transition:
+    background-color 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.ad-switch::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 999px;
+  background: var(--color-ad-texto-tenue);
+  transform: translateY(-50%);
+  transition:
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color 0.22s ease;
+}
+
+.ad-switch[aria-checked='true'] {
+  background: var(--color-ad-acento);
+  border-color: var(--color-ad-acento-claro);
+}
+
+.ad-switch[aria-checked='true']::after {
+  background: #ffffff;
+  transform: translate(1.24rem, -50%);
+}
+
+/* --- Chips de catalogo (apodo, avatar, banda) ---------------------------- */
+
+.ad-chip {
+  border: 1px solid var(--color-ad-borde);
+  border-radius: 0.875rem;
+  background: rgb(8 11 26 / 0.55);
+  color: var(--color-ad-texto-suave);
+  cursor: pointer;
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.16s ease;
+}
+
+.ad-chip:hover {
+  border-color: #3a4278;
+  color: var(--color-ad-texto);
+  transform: translateY(-1px);
+}
+
+.ad-chip[aria-pressed='true'] {
+  border-color: var(--color-ad-acento-claro);
+  background: rgb(47 107 255 / 0.16);
+  color: var(--color-ad-texto);
+  box-shadow: 0 0 0 1px var(--color-ad-acento-claro) inset;
+}
+
+/* --- Demo de la landing: el mensaje que se desarma ----------------------- */
+
+.ad-demo {
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+/* --- Telefono de la landing ----------------------------------------------
+ * Mockup CSS del mismo iPhone del juego (mismos tokens de carcasa y
+ * wallpaper): la landing ENSEÑA el producto, no lo describe.
+ */
+
+/* Marco con perspectiva: el telefono entra ladeado y se endereza al pasar
+   el mouse, como si el visitante lo tomara en la mano. */
+.ad-fono-escenario {
+  perspective: 1400px;
+}
+
+.ad-fono {
+  position: relative;
+  width: min(320px, 82vw);
+  aspect-ratio: 9 / 19;
+  border-radius: var(--radius-telefono);
+  background: linear-gradient(160deg, #232842, var(--color-carcasa) 55%);
+  border: 1px solid var(--color-carcasa-borde);
+  box-shadow:
+    0 0 0 5px #10131f,
+    0 0 0 6px #2c3352,
+    0 40px 80px -30px rgb(0 0 0 / 0.85),
+    0 0 90px -30px rgb(47 107 255 / 0.55);
+  padding: 10px;
+  transform: rotateY(-10deg) rotateX(3deg) rotateZ(1.5deg);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ad-fono-escenario:hover .ad-fono {
+  transform: rotateY(-2deg) rotateX(0.5deg) rotateZ(0deg);
+}
+
+/* Flota despacio para que la escena respire. */
+.ad-fono-flotante {
+  animation: ad-flota 7s ease-in-out infinite;
+}
+
+@keyframes ad-flota {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+.ad-fono-pantalla {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  border-radius: calc(var(--radius-telefono) - 10px);
+  background:
+    radial-gradient(circle at 78% 10%, rgb(124 58 237 / 0.5), transparent 48%),
+    radial-gradient(circle at 15% 85%, rgb(47 107 255 / 0.4), transparent 52%),
+    linear-gradient(to bottom, var(--color-wallpaper-arriba), var(--color-wallpaper-abajo));
+  color: var(--color-lock-texto);
+}
+
+/* Isla dinamica. */
+.ad-fono-notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 34%;
+  height: 22px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: #04050a;
+}
+
+/* Notificacion estilo iOS sobre el wallpaper. */
+.ad-fono-notif {
+  border-radius: 1.1rem;
+  background: rgb(245 246 251 / 0.16);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+/* Las notificaciones entran en cascada, como llegando en vivo. */
+.ad-fono-entra {
+  animation: ad-notif-cae 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: calc(0.9s + var(--i, 0) * 0.75s);
+}
+
+@keyframes ad-notif-cae {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --- Marquesina de anzuelos ----------------------------------------------
+ * Cinta continua con frases de estafas reales. Ligeramente inclinada, como
+ * cinta de "zona en obra": aqui se exhibe el peligro, no se esconde.
+ */
+
+.ad-marquesina {
+  transform: rotate(-1.4deg);
+  border-top: 1px solid rgb(245 165 36 / 0.3);
+  border-bottom: 1px solid rgb(245 165 36 / 0.3);
+  background: rgb(245 165 36 / 0.06);
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+}
+
+.ad-marquesina-pista {
+  display: flex;
+  width: max-content;
+  padding: 0.875rem 0;
+  animation: ad-desfila 36s linear infinite;
+}
+
+.ad-marquesina:hover .ad-marquesina-pista {
+  animation-play-state: paused;
+}
+
+/* Dos copias identicas y -50%: el bucle empalma sin salto. */
+@keyframes ad-desfila {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.ad-anzuelo {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  padding-right: 2.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #ffca6b;
+}
+
+/* Punto separador, centrado en el padding derecho de cada frase. */
+.ad-anzuelo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 1.375rem;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgb(245 165 36 / 0.55);
+  transform: translate(50%, -50%);
+}
+
+/* --- Tarjetas de "como funciona" con vineta ------------------------------ */
+
+.ad-carta {
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.ad-carta:hover {
+  transform: translateY(-5px);
+  border-color: rgb(123 163 255 / 0.45);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+    0 30px 60px -28px rgb(47 107 255 / 0.4);
+}
+
+/* --- Galeria de capturas reales del juego -------------------------------- */
+
+.ad-captura {
+  overflow: hidden;
+  border-radius: 1.75rem;
+  border: 1px solid var(--color-ad-borde);
+  background: var(--color-carcasa);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.07) inset,
+    0 30px 60px -30px rgb(0 0 0 / 0.9);
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s ease;
+}
+
+.ad-captura img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ad-captura:hover {
+  transform: translateY(-6px);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.09) inset,
+    0 40px 70px -30px rgb(47 107 255 / 0.45);
+}
+
+/* Comillas editoriales gigantes del manifiesto. */
+.ad-cita::before {
+  content: '“';
+  display: block;
+  font-family: var(--font-editorial);
+  font-size: 5rem;
+  line-height: 0.6;
+  color: var(--color-ad-cta);
+  opacity: 0.85;
+}
+
+/* --- Revelado al hacer scroll (CSS puro, sin JS) ------------------------- */
+
+@supports (animation-timeline: view()) {
+  .ad-vista {
+    animation: ad-sube 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+/* Cada senal se ilumina en secuencia: es el producto explicado sin texto. */
+.ad-senal {
+  position: relative;
+  border-radius: 0.25rem;
+  padding: 0 0.1875rem;
+  background: transparent;
+  color: inherit;
+  animation: ad-marca 9s ease-in-out infinite;
+  animation-delay: calc(1.1s + var(--i, 0) * 1.5s);
+}
+
+@keyframes ad-marca {
+  0%,
+  6% {
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+  }
+  12%,
+  46% {
+    background: rgb(245 165 36 / 0.22);
+    color: #ffd894;
+    box-shadow: 0 1px 0 var(--color-nivel-despierto);
+  }
+  60%,
+  100% {
+    background: transparent;
+    color: inherit;
+    box-shadow: none;
+  }
+}
+
+/* Cursor parpadeante del "escribiendo" en la demo. */
+.ad-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  vertical-align: -0.15em;
+  background: var(--color-ad-acento-claro);
+  animation: ad-parpadeo 1.1s steps(2, start) infinite;
+}
+
+@keyframes ad-parpadeo {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Halo suave detras del telefono de la landing. */
+.ad-halo {
+  position: absolute;
+  inset: -18% -12%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgb(47 107 255 / 0.3), transparent 68%);
+  filter: blur(28px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-senal,
+  .ad-caret,
+  .ad-fono-flotante,
+  .ad-fono-entra,
+  .ad-marquesina-pista,
+  .ad-vista {
+    animation: none;
+  }
+  /* Sin animacion, las senales quedan marcadas de forma estable. */
+  .ad-senal {
+    background: rgb(245 165 36 / 0.22);
+    color: #ffd894;
+    box-shadow: 0 1px 0 var(--color-nivel-despierto);
+  }
+  .ad-fono {
+    transform: none;
   }
 }
 
