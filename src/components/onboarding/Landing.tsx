@@ -15,7 +15,6 @@ import {
   BadgeCheck,
   Check,
   Cpu,
-  Fish,
   Flag,
   Gamepad2,
   Lightbulb,
@@ -29,6 +28,7 @@ import { orden } from './orden';
 import capturaHome from '../../assets/img/landing/juego-home.jpg';
 import capturaGmail from '../../assets/img/landing/juego-gmail.jpg';
 import capturaDecision from '../../assets/img/landing/juego-decision.jpg';
+import marca from '../../assets/img/landing/marca.png';
 
 /** Anzuelos reales que desfilan en la marquesina. Solo fraude: nada personal. */
 const ANZUELOS = [
@@ -220,20 +220,27 @@ export function Landing({ onEmpezar }: Props) {
       <div className="mx-auto max-w-6xl px-6 sm:px-10">
         {/* --- Barra superior -------------------------------------------- */}
         <header className="ad-revela flex items-center justify-between pt-8" style={orden(0)}>
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--color-marca-500)] to-[var(--color-nivel-super)] shadow-[0_8px_20px_-8px_rgb(47_107_255/0.8)]">
-              <Fish className="h-5 w-5 text-white" aria-hidden="true" />
+          <div className="flex items-center gap-3.5">
+            <img
+              src={marca}
+              alt=""
+              aria-hidden="true"
+              width={160}
+              height={160}
+              className="h-12 w-12 drop-shadow-[0_6px_14px_rgb(47_107_255/0.55)]"
+            />
+            <span className="text-xl font-extrabold tracking-tight">
+              Ponte Trucha <span className="text-[var(--color-ad-acento-claro)]">Kids</span>
             </span>
-            <span className="text-sm font-bold tracking-wide">Ponte Trucha Kids</span>
           </div>
           <div className="flex items-center gap-5">
-            <p className="hidden text-xs text-[var(--color-ad-texto-tenue)] sm:block">
+            <p className="hidden text-sm text-[var(--color-ad-texto-tenue)] md:block">
               Para madres, padres y tutores
             </p>
             <button
               type="button"
               onClick={onEmpezar}
-              className="rounded-full border border-[var(--color-ad-borde)] px-4 py-1.5 text-xs font-semibold text-[var(--color-ad-texto-suave)] transition-colors hover:border-[var(--color-ad-acento-claro)] hover:text-[var(--color-ad-texto)]"
+              className="rounded-full border border-[rgb(123_163_255/0.45)] bg-[rgb(47_107_255/0.14)] px-5 py-2.5 text-sm font-bold text-[var(--color-ad-texto)] transition-all hover:border-[var(--color-ad-acento-claro)] hover:bg-[rgb(47_107_255/0.28)]"
             >
               Ya tengo cuenta
             </button>
@@ -587,7 +594,7 @@ export function Landing({ onEmpezar }: Props) {
 
         <footer className="mt-24 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--color-ad-borde)] pt-7 text-xs text-[var(--color-ad-texto-tenue)]">
           <p className="flex items-center gap-2">
-            <Fish className="h-3.5 w-3.5" aria-hidden="true" />
+            <img src={marca} alt="" aria-hidden="true" width={160} height={160} className="h-4 w-4" />
             Ponte Trucha Kids · Hackathon Kiro + AWS · Código Facilito
           </p>
           <p>Equipo KikiriKillers 🐔</p>
