@@ -60,6 +60,11 @@ canal no tiene factory.
 No colocar rendering frontend en esta factory; solo contrato y reglas de
 backend.
 
+El mismo registro expone `list_channels()`, una lectura de solo metadata (sin
+instanciar retos) usada por el catálogo público. Añadir un canal implica
+registrar su factory una sola vez; el catálogo se deriva de ahí, nunca se
+mantiene por separado.
+
 ### Selección/adaptación — Strategy + Specification
 
 - `EligibilitySpecification`: banda, canal habilitado, no repetición,
@@ -121,6 +126,18 @@ Contrato de rutas en el PRD. Reglas:
 - límites de body;
 - correlation ID;
 - problem details.
+
+### Catálogo de apps — `GET /v1/apps`
+
+- Público, sin access token, igual que `/health`. No expone datos de cuenta,
+  perfil, progreso ni escenario; solo metadata de canal.
+- Responde `appType`, nombre visible y clave de ícono para cada canal habilitado
+  del `ScenarioFactoryRegistry`, en el orden de prioridad de producto.
+- `Cache-Control` corto (minutos) porque el catálogo cambia solo al desplegar
+  un canal nuevo, no por usuario ni por tiempo real.
+- El frontend lo consulta una vez al iniciar sesión de juego para pintar los
+  íconos disponibles; no reemplaza `GET /v1/perfiles/{childId}/retos/siguiente`,
+  que sigue siendo el único origen del contenido de un reto.
 
 ## IA
 

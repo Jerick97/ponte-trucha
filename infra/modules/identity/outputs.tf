@@ -3,6 +3,11 @@ output "issuer" {
   value       = "https://${aws_cognito_user_pool.adults.endpoint}"
 }
 
+output "resource_server_identifier" {
+  description = "Identificador del resource server usado para calificar los scopes OAuth."
+  value       = local.resource_server_identifier
+}
+
 output "spa_client_id" {
   description = "ID público del app client OAuth de la SPA."
   value       = aws_cognito_user_pool_client.spa.id

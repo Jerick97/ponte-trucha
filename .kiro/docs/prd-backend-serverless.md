@@ -140,6 +140,10 @@ Un reto tiene base común y payload discriminado por `appType`.
 La Factory selecciona constructor, validador y política por canal. Las
 estrategias de dificultad y selección permanecen independientes.
 
+`GET /v1/apps` expone la lista de canales habilitados (tipo, nombre visible,
+ícono) para que el frontend sincronice su interfaz antes de pedir un reto. Es
+público y no revela escenarios, señales ni respuestas correctas.
+
 ### 8.5 Intentos, score y progreso
 
 - Cada `challengeId` solo admite un intento calificable.
@@ -183,6 +187,7 @@ del niño.
 
 | Método | Ruta | Propósito |
 |---|---|---|
+| GET | `/v1/apps` | catálogo público de apps/canales habilitados |
 | GET | `/v1/me` | configuración mínima de la cuenta adulta |
 | GET/PUT | `/v1/consentimientos` | leer o registrar decisiones versionadas |
 | GET/POST | `/v1/perfiles` | listar o crear perfiles propios |

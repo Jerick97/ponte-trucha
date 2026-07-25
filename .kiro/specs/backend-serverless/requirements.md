@@ -31,6 +31,11 @@
   intento.
 - SI la IA no está consentida, disponible o validada, EL SISTEMA DEBE usar el
   banco curado.
+- EL SISTEMA DEBE exponer un catálogo público de apps/canales habilitados (tipo,
+  nombre visible, ícono) para que el frontend los muestre y sincronice antes de
+  pedir un reto.
+- EL CATÁLOGO NO DEBE incluir escenarios, señales delatoras ni respuestas
+  correctas; solo metadata de canal para la interfaz.
 
 ### R4 — Intentos y progreso
 

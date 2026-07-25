@@ -240,6 +240,68 @@ resource "aws_apigatewayv2_route" "health" {
   target    = "integrations/${aws_apigatewayv2_integration.api_core.id}"
 }
 
+resource "aws_apigatewayv2_route" "apps_catalog" {
+  # GET /v1/apps es público (design.md #catálogo-de-apps): metadata de canal,
+  # sin datos de cuenta, perfil ni escenario. Igual que /v1/health, no lleva
+  # JWT authorizer.
+  api_id    = aws_apigatewayv2_api.core.id
+  route_key = "GET /v1/apps"
+  target    = "integrations/${aws_apigatewayv2_integration.api_core.id}"
+}
+
+locals {
+  # Rutas protegidas de cuenta, consentimiento y perfiles infantiles
+  # (autenticacion-consentimiento-parental). El scope exigido aquí debe
+  # coincidir con el que valida `require_scope` en el entrypoint FastAPI;
+  # `tests/contract/test_infrastructure_contract.py` exige que el conjunto de
+  # rutas coincida exactamente con lo publicado por OpenAPI.
+  protected_routes = {
+    bootstrap_account = {
+      route_key = "POST /v1/cuenta"
+      scope     = "profiles.read"
+    }
+    get_consents = {
+      route_key = "GET /v1/consentimientos"
+      scope     = "consents.read"
+    }
+    update_consent = {
+      route_key = "PATCH /v1/consentimientos/{purpose}"
+      scope     = "consents.write"
+    }
+    list_profiles = {
+      route_key = "GET /v1/perfiles"
+      scope     = "profiles.read"
+    }
+    create_profile = {
+      route_key = "POST /v1/perfiles"
+      scope     = "profiles.write"
+    }
+    update_profile = {
+      route_key = "PATCH /v1/perfiles/{child_id}"
+      scope     = "profiles.write"
+    }
+    delete_profile = {
+      route_key = "DELETE /v1/perfiles/{child_id}"
+      scope     = "profiles.write"
+    }
+    issue_next_challenge = {
+      route_key = "GET /v1/perfiles/{child_id}/retos/siguiente"
+      scope     = "game.play"
+    }
+  }
+}
+
+resource "aws_apigatewayv2_route" "protected" {
+  for_each = local.protected_routes
+
+  api_id               = aws_apigatewayv2_api.core.id
+  authorization_scopes = ["${var.cognito_resource_server_identifier}/${each.value.scope}"]
+  authorization_type   = "JWT"
+  authorizer_id        = aws_apigatewayv2_authorizer.cognito.id
+  route_key            = each.value.route_key
+  target               = "integrations/${aws_apigatewayv2_integration.api_core.id}"
+}
+
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.core.id
   auto_deploy = true

@@ -48,6 +48,11 @@ variable "cognito_issuer" {
   type        = string
 }
 
+variable "cognito_resource_server_identifier" {
+  description = "Identificador del resource server que califica los scopes OAuth de las rutas."
+  type        = string
+}
+
 variable "cors_allowed_origins" {
   description = "Orígenes explícitos permitidos por CORS."
   type        = list(string)

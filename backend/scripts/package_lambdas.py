@@ -8,10 +8,12 @@ import zipfile
 from pathlib import Path
 
 BACKEND_ROOT = Path(__file__).parents[1]
-ARTIFACT_ROOT = BACKEND_ROOT.parents[0] / "infra" / ".artifacts"
+REPO_ROOT = BACKEND_ROOT.parents[0]
+ARTIFACT_ROOT = REPO_ROOT / "infra" / ".artifacts"
 RUNTIME_REQUIREMENTS = BACKEND_ROOT / "requirements-runtime.txt"
 SOURCE_ROOT = BACKEND_ROOT / "src"
 LAMBDA_ROOT = BACKEND_ROOT / "lambda"
+CURATED_SCENARIO_BANK_PATH = REPO_ROOT / "src" / "data" / "escenarios.json"
 
 
 def _add_tree(archive: zipfile.ZipFile, root: Path) -> None:
@@ -54,6 +56,14 @@ def _build_lambda(lambda_name: str) -> Path:
         )
         shutil.copytree(SOURCE_ROOT / "ponte_trucha", staging_root / "ponte_trucha")
         shutil.copy2(script_path, staging_root / "run.sh")
+
+        if lambda_name == "api-core":
+            # `api-core` sirve `GET /v1/apps` y `GET /v1/perfiles/{id}/retos/
+            # siguiente` desde el banco curado. `api-ia` no lo necesita: no
+            # expone esas rutas (ver infra/modules/api/main.tf).
+            bank_target = staging_root / "ponte_trucha" / "adapters" / "data"
+            bank_target.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(CURATED_SCENARIO_BANK_PATH, bank_target / "escenarios.json")
 
         ARTIFACT_ROOT.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(artifact_path, "w") as archive:
