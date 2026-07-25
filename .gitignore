@@ -38,3 +38,6 @@ yarn-error.log*
 
 # Claude Code — settings personales de cada quien
 .claude/settings.local.json
+
+# Grabaciones crudas de pantalla: solo se versiona el clip comprimido
+src/assets/video/Grabaci*n de pantalla*

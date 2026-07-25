@@ -722,6 +722,66 @@
     0 22px 55px -30px rgb(0 0 0 / 0.9);
 }
 
+/* Variante con halo azul para tarjetas grandes de seccion. */
+.ad-tarjeta--brillo {
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.05) inset,
+    0 22px 55px -30px rgb(0 0 0 / 0.9),
+    0 0 80px -20px rgb(47 107 255 / 0.35);
+}
+
+/* --- Lista "nunca le pedimos": el dato se tacha al pasar el mouse --------
+ * La interaccion ES el mensaje: ese dato queda anulado.
+ */
+
+.ad-prohibido {
+  border: 1px solid transparent;
+  transition:
+    border-color 0.25s ease,
+    background-color 0.25s ease,
+    transform 0.25s ease;
+}
+
+.ad-prohibido svg {
+  transition:
+    transform 0.25s ease,
+    color 0.25s ease;
+}
+
+.ad-prohibido-texto {
+  position: relative;
+}
+
+/* Linea de tachado: se dibuja de izquierda a derecha. */
+.ad-prohibido-texto::after {
+  content: '';
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 52%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-trampa);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ad-prohibido:hover {
+  border-color: rgb(229 72 77 / 0.45);
+  background: rgb(229 72 77 / 0.09);
+  transform: translateX(4px);
+}
+
+.ad-prohibido:hover svg {
+  transform: scale(1.25);
+  color: #ff8d91;
+}
+
+.ad-prohibido:hover .ad-prohibido-texto::after {
+  transform: scaleX(1);
+}
+
 /* --- Botones ------------------------------------------------------------- */
 
 .ad-boton {
@@ -911,6 +971,8 @@
   perspective: 1400px;
 }
 
+/* El tilt vive en variables: el JS del parallax las escribe al mover el mouse
+   y al salir vuelven solas al reposo (los valores por defecto de aqui). */
 .ad-fono {
   position: relative;
   width: min(320px, 82vw);
@@ -924,12 +986,32 @@
     0 40px 80px -30px rgb(0 0 0 / 0.85),
     0 0 90px -30px rgb(47 107 255 / 0.55);
   padding: 10px;
-  transform: rotateY(-10deg) rotateX(3deg) rotateZ(1.5deg);
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: rotateY(var(--ad-ry, -10deg)) rotateX(var(--ad-rx, 3deg)) rotateZ(1.5deg);
+  transition: transform 0.25s ease-out;
 }
 
-.ad-fono-escenario:hover .ad-fono {
-  transform: rotateY(-2deg) rotateX(0.5deg) rotateZ(0deg);
+/* Capa con profundidad: cada una se desplaza segun su --prof (px por unidad
+   de offset del cursor), como las laminas del poster de Apple TV. */
+.ad-fono-capa {
+  transform: translate(
+    calc(var(--ad-ox, 0) * var(--prof, 0) * 1px),
+    calc(var(--ad-oy, 0) * var(--prof, 0) * 1px)
+  );
+  transition: transform 0.18s ease-out;
+}
+
+/* Brillo que persigue al cursor sobre el vidrio. */
+.ad-fono-brillo {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    var(--ad-angulo, 115deg),
+    rgb(255 255 255 / var(--ad-brillo, 0.07)) 0%,
+    transparent 65%
+  );
 }
 
 /* Flota despacio para que la escena respire. */
@@ -1079,25 +1161,55 @@
   border-radius: 1.75rem;
   border: 1px solid var(--color-ad-borde);
   background: var(--color-carcasa);
+  /* Brillo azul de base: las piezas se despegan del fondo sin esperar hover. */
   box-shadow:
     0 1px 0 0 rgb(255 255 255 / 0.07) inset,
-    0 30px 60px -30px rgb(0 0 0 / 0.9);
+    0 30px 60px -30px rgb(0 0 0 / 0.9),
+    0 0 55px -12px rgb(47 107 255 / 0.4);
   transition:
     transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.35s ease;
 }
 
-.ad-captura img {
+/* La pieza central (el video) brilla mas fuerte: es la protagonista. */
+.ad-captura--destacada {
+  border-color: rgb(123 163 255 / 0.5);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.09) inset,
+    0 30px 60px -30px rgb(0 0 0 / 0.9),
+    0 0 75px -8px rgb(47 107 255 / 0.55),
+    0 0 120px -30px rgb(245 165 36 / 0.35);
+}
+
+.ad-captura img,
+.ad-captura video {
   display: block;
   width: 100%;
   height: auto;
+}
+
+/* El poster del video solo existe para quien pide menos movimiento: ahi se
+   oculta el video (que autoreproduce) y se muestra la imagen fija.
+   Doble clase a proposito: debe ganarle a `.ad-captura img`. */
+.ad-captura .ad-captura-poster {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ad-captura video {
+    display: none;
+  }
+  .ad-captura .ad-captura-poster {
+    display: block;
+  }
 }
 
 .ad-captura:hover {
   transform: translateY(-6px);
   box-shadow:
     0 1px 0 0 rgb(255 255 255 / 0.09) inset,
-    0 40px 70px -30px rgb(47 107 255 / 0.45);
+    0 40px 70px -30px rgb(47 107 255 / 0.45),
+    0 0 75px -8px rgb(47 107 255 / 0.6);
 }
 
 /* Comillas editoriales gigantes del manifiesto. */
@@ -1194,8 +1306,12 @@
     color: #ffd894;
     box-shadow: 0 1px 0 var(--color-nivel-despierto);
   }
-  .ad-fono {
+  .ad-fono,
+  .ad-fono-capa {
     transform: none;
+  }
+  .ad-fono-brillo {
+    display: none;
   }
 }
 

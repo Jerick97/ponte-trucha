@@ -20,15 +20,23 @@ import {
   Lightbulb,
   Mail,
   MessageCircle,
+  Plus,
   ShieldCheck,
   SlidersHorizontal,
   X,
 } from 'lucide-react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import { orden } from './orden';
 import capturaHome from '../../assets/img/landing/juego-home.jpg';
-import capturaGmail from '../../assets/img/landing/juego-gmail.jpg';
 import capturaDecision from '../../assets/img/landing/juego-decision.jpg';
 import marca from '../../assets/img/landing/marca.png';
+import demoVideo from '../../assets/video/demo-landing.mp4';
+import demoPoster from '../../assets/video/demo-poster.jpg';
+import iconoWhatsapp from '../../assets/img/icon_whatsapp.png';
+import iconoMensajes from '../../assets/img/Icon_message.svg';
+import iconoDiscord from '../../assets/img/icono_discord.svg';
+import iconoRoblox from '../../assets/img/icono_roblox.svg';
+import iconoGmail from '../../assets/img/icon_gmail.svg';
 
 /** Anzuelos reales que desfilan en la marquesina. Solo fraude: nada personal. */
 const ANZUELOS = [
@@ -41,12 +49,13 @@ const ANZUELOS = [
   'Verifica tu cuenta con tu clave',
 ];
 
+/** Mismos iconos y baldosas que usa el home del telefono simulado (apps.ts). */
 const APPS_SIMULADAS = [
-  { nombre: 'WhatsApp', color: 'var(--color-app-whatsapp)' },
-  { nombre: 'Mensajes', color: 'var(--color-app-mensajes)' },
-  { nombre: 'Discord', color: 'var(--color-app-discord)' },
-  { nombre: 'Roblox', color: 'var(--color-app-chat-juego)' },
-  { nombre: 'Gmail', color: 'var(--color-app-gmail)' },
+  { nombre: 'WhatsApp', icono: iconoWhatsapp, conFondo: true, clase: 'bg-[var(--color-app-whatsapp)]' },
+  { nombre: 'Mensajes', icono: iconoMensajes, conFondo: true, clase: 'bg-[var(--color-app-mensajes)]' },
+  { nombre: 'Discord', icono: iconoDiscord, conFondo: false, clase: 'bg-[var(--color-app-discord)]' },
+  { nombre: 'Roblox', icono: iconoRoblox, conFondo: false, clase: 'bg-[var(--color-rb-azul)]' },
+  { nombre: 'Gmail', icono: iconoGmail, conFondo: false, clase: 'bg-[var(--color-telefono)]' },
 ];
 
 const PRIVACIDAD = [
@@ -82,6 +91,33 @@ const EVIDENCIA = [
   },
 ];
 
+/**
+ * Hoja de ruta visible: sale de los specs reales de `.kiro/specs/` (banco de
+ * escenarios, backend serverless, area de padres). Nada que no este planeado.
+ */
+const HOJA_DE_RUTA = [
+  {
+    estado: 'En camino',
+    titulo: 'Más escenarios cada semana',
+    texto: 'El banco de trampas crece con lo que circula de verdad: nuevos premios falsos, nuevos apuros, nuevas señales que aprender.',
+  },
+  {
+    estado: 'En camino',
+    titulo: 'Progreso guardado en la nube',
+    texto: 'Cuentas reales para seguir la partida desde cualquier dispositivo — con la misma regla de siempre: cero datos del niño.',
+  },
+  {
+    estado: 'Próximamente',
+    titulo: 'Área de padres',
+    texto: 'Ver el avance de tu hijo o hija, ajustar cada permiso y borrar todo, desde un solo lugar.',
+  },
+  {
+    estado: 'Próximamente',
+    titulo: 'Nuevas apps simuladas',
+    texto: 'Las trampas cambian de app todo el tiempo. El teléfono del juego también va a crecer.',
+  },
+] as const;
+
 /** Garantías que un padre quiere leer ANTES de dar clic. */
 const CONFIANZA = [
   { icono: Cpu, texto: 'Corre en el dispositivo' },
@@ -101,14 +137,6 @@ const CAPTURAS = [
     alt: 'Home del teléfono simulado con una notificación de Gmail llegando y el marcador del juego',
   },
   {
-    src: capturaGmail,
-    ancho: 388,
-    alto: 920,
-    titulo: 'En apps idénticas a las reales',
-    detalle: 'Una bandeja de Gmail creíble, con correos legítimos mezclados.',
-    alt: 'Bandeja de entrada de Gmail simulada dentro del juego, con varios correos',
-  },
-  {
     src: capturaDecision,
     ancho: 388,
     alto: 920,
@@ -124,10 +152,75 @@ interface Props {
 
 /* ------------------------------------------------------------------------- */
 
-/** iPhone en CSS con la pantalla de bloqueo del juego recibiendo estafas. */
+/** Capa del parallax: posicion en la secuencia de entrada + profundidad. */
+function capa(i: number, prof: number): CSSProperties {
+  return { ...orden(i), '--prof': prof } as CSSProperties;
+}
+
+/**
+ * iPhone en CSS con la pantalla de bloqueo del juego recibiendo estafas.
+ *
+ * Parallax estilo poster de Apple TV, adaptado: el mouse inclina el telefono
+ * hacia el cursor, un brillo recorre el vidrio y cada notificacion flota a su
+ * propia profundidad (`--prof`). Todo via variables CSS actualizadas en un
+ * requestAnimationFrame; con `prefers-reduced-motion` no se activa.
+ */
 function TelefonoDemo() {
+  const escenarioRef = useRef<HTMLDivElement>(null);
+  const marcoRaf = useRef<number | null>(null);
+  const puntero = useRef({ x: 0, y: 0 });
+
+  useEffect(() => {
+    return () => {
+      if (marcoRaf.current !== null) cancelAnimationFrame(marcoRaf.current);
+    };
+  }, []);
+
+  function pintarParallax() {
+    marcoRaf.current = null;
+    const el = escenarioRef.current;
+    if (!el) return;
+
+    const r = el.getBoundingClientRect();
+    const { x, y } = puntero.current;
+    // Offsets en [-0.5, 0.5] respecto al centro de la escena.
+    const ox = 0.5 - (x - r.left) / r.width;
+    const oy = 0.5 - (y - r.top) / r.height;
+    // Angulo cursor→centro para orientar el brillo del vidrio.
+    const dx = x - (r.left + r.width / 2);
+    const dy = y - (r.top + r.height / 2);
+    let angulo = (Math.atan2(dy, dx) * 180) / Math.PI - 90;
+    if (angulo < 0) angulo += 360;
+
+    el.style.setProperty('--ad-ox', ox.toFixed(3));
+    el.style.setProperty('--ad-oy', oy.toFixed(3));
+    el.style.setProperty('--ad-ry', `${(ox * -22).toFixed(2)}deg`);
+    el.style.setProperty('--ad-rx', `${(oy * 14).toFixed(2)}deg`);
+    el.style.setProperty('--ad-angulo', `${angulo.toFixed(1)}deg`);
+    el.style.setProperty('--ad-brillo', (0.06 + (0.5 - oy) * 0.18).toFixed(3));
+  }
+
+  function alMover(e: React.PointerEvent<HTMLDivElement>) {
+    if (e.pointerType !== 'mouse') return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    puntero.current = { x: e.clientX, y: e.clientY };
+    if (marcoRaf.current === null) marcoRaf.current = requestAnimationFrame(pintarParallax);
+  }
+
+  function alSalir() {
+    const el = escenarioRef.current;
+    if (!el) return;
+    // Al soltar las variables, el CSS transiciona solo de vuelta al reposo.
+    for (const v of ['--ad-ox', '--ad-oy', '--ad-ry', '--ad-rx', '--ad-angulo', '--ad-brillo']) {
+      el.style.removeProperty(v);
+    }
+  }
+
   return (
     <div
+      ref={escenarioRef}
+      onPointerMove={alMover}
+      onPointerLeave={alSalir}
       className="ad-fono-escenario relative flex justify-center"
       role="img"
       aria-label="Teléfono simulado del juego mostrando tres mensajes de estafa llegando a la pantalla de bloqueo"
@@ -137,16 +230,17 @@ function TelefonoDemo() {
         <div className="ad-fono" aria-hidden="true">
           <div className="ad-fono-pantalla flex flex-col px-3 pb-4 pt-2">
             <div className="ad-fono-notch" />
+            <div className="ad-fono-brillo" aria-hidden="true" />
 
-            {/* Hora del lock, como en el juego */}
-            <div className="mt-10 text-center">
+            {/* Hora del lock, como en el juego (capa lejana: va al reves) */}
+            <div className="ad-fono-capa mt-10 text-center" style={{ '--prof': -8 } as CSSProperties}>
               <p className="text-[11px] font-medium text-white/80">viernes 24 de julio</p>
               <p className="text-[3.4rem] font-bold leading-none tracking-tight">9:41</p>
             </div>
 
             {/* Notificaciones cayendo en cascada */}
             <div className="mt-5 flex flex-col gap-2">
-              <div className="ad-fono-notif ad-fono-entra p-2.5" style={orden(0)}>
+              <div className="ad-fono-capa ad-fono-notif ad-fono-entra p-2.5" style={capa(0, 10)}>
                 <div className="flex items-start gap-2">
                   <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[var(--color-app-chat-juego)]">
                     <Gamepad2 className="h-4 w-4 text-white" />
@@ -165,7 +259,7 @@ function TelefonoDemo() {
                 </div>
               </div>
 
-              <div className="ad-fono-notif ad-fono-entra p-2.5" style={orden(1)}>
+              <div className="ad-fono-capa ad-fono-notif ad-fono-entra p-2.5" style={capa(1, 15)}>
                 <div className="flex items-start gap-2">
                   <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[var(--color-app-whatsapp)]">
                     <MessageCircle className="h-4 w-4 text-white" />
@@ -182,7 +276,7 @@ function TelefonoDemo() {
                 </div>
               </div>
 
-              <div className="ad-fono-notif ad-fono-entra p-2.5" style={orden(2)}>
+              <div className="ad-fono-capa ad-fono-notif ad-fono-entra p-2.5" style={capa(2, 20)}>
                 <div className="flex items-start gap-2">
                   <span className="flex h-7 w-7 flex-none items-center justify-center rounded-lg bg-[var(--color-app-gmail)]">
                     <Mail className="h-4 w-4 text-white" />
@@ -199,7 +293,10 @@ function TelefonoDemo() {
             </div>
 
             {/* Pie del lock */}
-            <div className="mt-auto flex flex-col items-center gap-2 pt-4">
+            <div
+              className="ad-fono-capa mt-auto flex flex-col items-center gap-2 pt-4"
+              style={{ '--prof': 6 } as CSSProperties}
+            >
               <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/55">
                 Aquí es donde practica
               </p>
@@ -457,39 +554,98 @@ export function Landing({ onEmpezar }: Props) {
               <p className="ad-kicker">Así se ve por dentro</p>
               <div className="ad-filete mt-4" />
               <h2 className="ad-display mt-6 text-[1.9rem] sm:text-[2.2rem]">
-                Capturas reales del juego. Sin maquetas.
+                Grabado del juego real. Sin maquetas.
               </h2>
             </div>
             <p className="max-w-[22rem] text-sm leading-relaxed text-[var(--color-ad-texto-suave)]">
-              Cada pantalla está construida al detalle para que la práctica se sienta como el
-              teléfono de verdad.
+              Al centro, una partida de verdad: dos mensajes, dos decisiones y su celebración.
+              Tal cual se ve al jugar.
             </p>
           </div>
 
-          <div className="mt-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
-            {CAPTURAS.map((c, i) => (
-              <figure key={c.titulo} className={`ad-vista ${i === 1 ? 'sm:-mt-6' : ''}`}>
-                <div className="ad-captura">
-                  <img
-                    src={c.src}
-                    alt={c.alt}
-                    width={c.ancho}
-                    height={c.alto}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-                <figcaption className="mt-4 px-1">
-                  <p className="flex items-center gap-2 text-sm font-semibold">
-                    <span className="ad-numero">{String(i + 1).padStart(2, '0')}</span>
-                    {c.titulo}
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
-                    {c.detalle}
-                  </p>
-                </figcaption>
-              </figure>
-            ))}
+          <div className="mx-auto mt-12 grid max-w-3xl gap-12 sm:grid-cols-3 sm:gap-10">
+            {/* Captura izquierda */}
+            <figure className="ad-vista mx-auto w-full max-w-[240px] sm:max-w-none">
+              <div className="ad-captura">
+                <img
+                  src={CAPTURAS[0].src}
+                  alt={CAPTURAS[0].alt}
+                  width={CAPTURAS[0].ancho}
+                  height={CAPTURAS[0].alto}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className="mt-4 px-1">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="ad-numero">01</span>
+                  {CAPTURAS[0].titulo}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
+                  {CAPTURAS[0].detalle}
+                </p>
+              </figcaption>
+            </figure>
+
+            {/* Video central: la partida real en bucle. Con reduced-motion el
+                CSS oculta el video y muestra el poster estatico (.ad-captura-poster). */}
+            <figure className="ad-vista mx-auto w-full max-w-[240px] sm:max-w-none">
+              <div className="ad-captura ad-captura--destacada">
+                <video
+                  src={demoVideo}
+                  poster={demoPoster}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  width={480}
+                  height={1238}
+                  aria-label="Grabación de una partida real: llegan dos mensajes, el jugador decide si son trampa o de confianza y celebra sus aciertos"
+                />
+                <img
+                  src={demoPoster}
+                  alt="Pantalla de bloqueo del juego con una notificación entrante"
+                  width={480}
+                  height={1238}
+                  loading="lazy"
+                  decoding="async"
+                  className="ad-captura-poster"
+                />
+              </div>
+              <figcaption className="mt-4 px-1">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="ad-numero">02</span>
+                  Una partida real, en vivo
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
+                  28 segundos sin cortes: decide, aprende la pista y celebra.
+                </p>
+              </figcaption>
+            </figure>
+
+            {/* Captura derecha */}
+            <figure className="ad-vista mx-auto w-full max-w-[240px] sm:max-w-none">
+              <div className="ad-captura">
+                <img
+                  src={CAPTURAS[1].src}
+                  alt={CAPTURAS[1].alt}
+                  width={CAPTURAS[1].ancho}
+                  height={CAPTURAS[1].alto}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </div>
+              <figcaption className="mt-4 px-1">
+                <p className="flex items-center gap-2 text-sm font-semibold">
+                  <span className="ad-numero">03</span>
+                  {CAPTURAS[1].titulo}
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
+                  {CAPTURAS[1].detalle}
+                </p>
+              </figcaption>
+            </figure>
           </div>
         </section>
 
@@ -516,28 +672,82 @@ export function Landing({ onEmpezar }: Props) {
           <div>
             <h2 className="ad-display text-[1.6rem]">Las trampas llegan donde ya vive.</h2>
             <p className="mt-1.5 text-sm text-[var(--color-ad-texto-suave)]">
-              Cinco apps simuladas dentro de un teléfono que se siente real.
+              Cinco apps simuladas dentro de un teléfono que se siente real — y vienen más.
             </p>
           </div>
-          <ul className="flex flex-wrap gap-2.5">
+          {/* Dock como el del telefono: mismas baldosas e iconos del juego. */}
+          <ul className="flex flex-wrap items-end gap-5 rounded-[1.6rem] border border-[var(--color-ad-borde)] bg-[rgb(255_255_255/0.05)] px-6 py-4 backdrop-blur shadow-[0_1px_0_0_rgb(255_255_255/0.07)_inset,0_25px_50px_-25px_rgb(0_0_0/0.9),0_0_50px_-10px_rgb(47_107_255/0.4)]">
             {APPS_SIMULADAS.map((app) => (
-              <li
-                key={app.nombre}
-                className="flex items-center gap-2 rounded-full border border-[var(--color-ad-borde)] bg-[rgb(8_11_26/0.5)] px-4 py-2 text-sm font-medium text-[var(--color-ad-texto-suave)]"
-              >
+              <li key={app.nombre} className="group flex flex-col items-center gap-1.5">
                 <span
-                  aria-hidden="true"
-                  className="h-2.5 w-2.5 rounded-full"
-                  style={{ backgroundColor: app.color }}
-                />
-                {app.nombre}
+                  className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-[0.9rem] shadow-[0_12px_24px_-10px_rgb(0_0_0/0.85)] transition-all duration-200 group-hover:-translate-y-1.5 group-hover:scale-105 group-hover:shadow-[0_16px_30px_-10px_rgb(0_0_0/0.9),0_0_24px_-4px_rgb(47_107_255/0.55)] ${app.clase}`}
+                >
+                  <img
+                    src={app.icono}
+                    alt=""
+                    draggable={false}
+                    className={app.conFondo ? 'h-full w-full object-cover' : 'h-7 w-7'}
+                  />
+                </span>
+                <span className="text-[11px] font-medium text-[var(--color-ad-texto-suave)]">
+                  {app.nombre}
+                </span>
+              </li>
+            ))}
+            {/* Baldosa "pronto": el dock tambien crece. */}
+            <li className="group flex flex-col items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="flex h-12 w-12 items-center justify-center rounded-[0.9rem] border-2 border-dashed border-[var(--color-ad-borde)] text-[var(--color-ad-texto-tenue)] transition-all duration-200 group-hover:-translate-y-1.5 group-hover:border-[var(--color-nivel-despierto)] group-hover:text-[var(--color-nivel-despierto)]"
+              >
+                <Plus className="h-5 w-5" />
+              </span>
+              <span className="text-[11px] font-medium text-[var(--color-ad-texto-tenue)]">
+                Pronto
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        {/* --- Hoja de ruta: el proyecto crece ----------------------------- */}
+        <section className="mt-24">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <p className="ad-kicker">El plan</p>
+              <div className="ad-filete mt-4" />
+              <h2 className="ad-display mt-6 text-[1.9rem] sm:text-[2.2rem]">
+                Esto recién empieza.
+              </h2>
+            </div>
+            <p className="max-w-[22rem] text-sm leading-relaxed text-[var(--color-ad-texto-suave)]">
+              Las estafas evolucionan cada semana. El juego está construido para evolucionar
+              con ellas.
+            </p>
+          </div>
+
+          <ul className="mt-10 grid gap-5 sm:grid-cols-2">
+            {HOJA_DE_RUTA.map((hito) => (
+              <li key={hito.titulo} className="ad-tarjeta ad-carta ad-vista p-6">
+                <span
+                  className={`inline-block rounded-full px-2.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.14em] ${
+                    hito.estado === 'En camino'
+                      ? 'bg-[rgb(47_107_255/0.18)] text-[var(--color-ad-acento-claro)]'
+                      : 'bg-[rgb(245_165_36/0.16)] text-[var(--color-nivel-despierto)]'
+                  }`}
+                >
+                  {hito.estado}
+                </span>
+                <h3 className="ad-display mt-3 text-[1.3rem]">{hito.titulo}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--color-ad-texto-suave)]">
+                  {hito.texto}
+                </p>
               </li>
             ))}
           </ul>
         </section>
 
         {/* --- Privacidad ------------------------------------------------- */}
-        <section className="ad-tarjeta ad-vista mt-24 overflow-hidden p-8 sm:p-11">
+        <section className="ad-tarjeta ad-tarjeta--brillo ad-vista mt-24 overflow-hidden p-8 sm:p-11">
           <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
             <div>
               <p className="ad-kicker">Privacidad</p>
@@ -560,10 +770,10 @@ export function Landing({ onEmpezar }: Props) {
                 {PRIVACIDAD.map((item) => (
                   <li
                     key={item}
-                    className="flex items-start gap-2.5 rounded-lg bg-[rgb(8_11_26/0.45)] px-3.5 py-2.5 text-sm text-[var(--color-ad-texto-suave)]"
+                    className="ad-prohibido ad-vista flex items-start gap-2.5 rounded-lg bg-[rgb(8_11_26/0.45)] px-3.5 py-2.5 text-sm text-[var(--color-ad-texto-suave)]"
                   >
                     <X className="mt-0.5 h-3.5 w-3.5 flex-none text-[var(--color-trampa)]" aria-hidden="true" />
-                    {item}
+                    <span className="ad-prohibido-texto">{item}</span>
                   </li>
                 ))}
               </ul>
