@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Header, Request, Response, status
 
 from ponte_trucha.application.authenticated_adult import AuthenticatedAdult
 from ponte_trucha.application.create_child_profile import CreateChildProfileCommand
@@ -13,6 +13,7 @@ from ponte_trucha.entrypoints.http.schemas import (
     ChildProfileResponse,
     CreateChildProfileRequest,
     NextChallengeResponse,
+    ProgressResponse,
     UpdateChildProfileRequest,
 )
 
@@ -35,6 +36,15 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
     ) -> list[ChildProfileResponse]:
         profiles = use_cases.list_child_profiles.execute(adult)
         return [ChildProfileResponse.from_domain(profile) for profile in profiles]
+
+    @router.get("/v1/perfiles/{child_id}", response_model=ChildProfileResponse)
+    def get_profile(  # pyright: ignore[reportUnusedFunction]
+        child_id: str,
+        adult: AuthenticatedAdult = Depends(profiles_read),
+        use_cases: UseCases = Depends(_use_cases),
+    ) -> ChildProfileResponse:
+        profile = use_cases.get_child_profile.execute(adult, child_id=child_id)
+        return ChildProfileResponse.from_domain(profile)
 
     @router.post(
         "/v1/perfiles", response_model=ChildProfileResponse, status_code=status.HTTP_201_CREATED
@@ -66,10 +76,27 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
     @router.delete("/v1/perfiles/{child_id}", status_code=status.HTTP_204_NO_CONTENT)
     def delete_profile(  # pyright: ignore[reportUnusedFunction]
         child_id: str,
+        response: Response,
+        idempotency_key: str = Header(alias="Idempotency-Key", min_length=8, max_length=128),
         adult: AuthenticatedAdult = Depends(profiles_write),
         use_cases: UseCases = Depends(_use_cases),
     ) -> None:
-        use_cases.delete_child_profile.execute(adult, child_id=child_id)
+        _deleted, replayed = use_cases.delete_child_profile.execute(
+            adult, child_id=child_id, idempotency_key=idempotency_key
+        )
+        response.headers["Idempotency-Replayed"] = str(replayed).lower()
+
+    @router.get(
+        "/v1/perfiles/{child_id}/progreso",
+        response_model=ProgressResponse,
+    )
+    def get_progress(  # pyright: ignore[reportUnusedFunction]
+        child_id: str,
+        adult: AuthenticatedAdult = Depends(profiles_read),
+        use_cases: UseCases = Depends(_use_cases),
+    ) -> ProgressResponse:
+        progress = use_cases.get_progress.execute(adult, child_id=child_id)
+        return ProgressResponse.from_domain(progress)
 
     @router.get(
         "/v1/perfiles/{child_id}/retos/siguiente",

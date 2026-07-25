@@ -74,6 +74,9 @@ class ParentAccountDynamoDbRepository(ParentAccountRepository):
     def save(self, account: ParentAccount) -> None:
         self._table.put_item(Item=_account_to_item(account))
 
+    def delete(self, *, parent_ref: str) -> None:
+        self._table.delete_item(Key={"PK": parent_pk(parent_ref), "SK": ACCOUNT_SK})
+
 
 class ConsentDynamoDbRepository(ConsentRepository):
     """Persiste `ConsentRecord` bajo `PARENT#{parentRef}` / `CONSENT#{purpose}`."""
@@ -99,6 +102,16 @@ class ConsentDynamoDbRepository(ConsentRepository):
 
     def save(self, *, parent_ref: str, record: ConsentRecord) -> None:
         self._table.put_item(Item=_consent_to_item(parent_ref, record))
+
+    def delete_for_parent(self, *, parent_ref: str) -> None:
+        response = self._table.query(
+            KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
+            ExpressionAttributeValues={":pk": parent_pk(parent_ref), ":prefix": CONSENT_SK_PREFIX},
+            ProjectionExpression="PK, SK",
+        )
+        with self._table.batch_writer() as batch:
+            for item in response.get("Items", []):
+                batch.delete_item(Key={"PK": item["PK"], "SK": item["SK"]})
 
 
 class ChildProfileDynamoDbRepository(ChildProfileRepository):
@@ -139,6 +152,16 @@ class ChildProfileDynamoDbRepository(ChildProfileRepository):
 
     def delete(self, *, parent_ref: str, child_id: str) -> None:
         self._table.delete_item(Key={"PK": parent_pk(parent_ref), "SK": profile_sk(child_id)})
+
+    def delete_for_parent(self, *, parent_ref: str) -> None:
+        response = self._table.query(
+            KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
+            ExpressionAttributeValues={":pk": parent_pk(parent_ref), ":prefix": PROFILE_SK_PREFIX},
+            ProjectionExpression="PK, SK",
+        )
+        with self._table.batch_writer() as batch:
+            for item in response.get("Items", []):
+                batch.delete_item(Key={"PK": item["PK"], "SK": item["SK"]})
 
 
 def _account_to_item(account: ParentAccount) -> dict[str, Any]:

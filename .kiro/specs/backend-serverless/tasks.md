@@ -1,10 +1,10 @@
 # Tareas — Backend serverless
 
-> Plan de implementación para Kiro. Las tareas 1, 2, 4, 6, 19 y 20 están
-> completadas. 10.1 y 18.1 (catálogo `GET /v1/apps`) y el flujo de emisión de
-> `GET /v1/perfiles/{childId}/retos/siguiente` (partes de 7, 8, 11, 12, 14, 15,
-> 18) también están completos y verificados. La transacción de intento
-> (`POST .../intentos`, tareas 13, 16, 17) sigue pendiente.
+> Plan de implementación para Kiro. El contrato HTTP del MVP está expuesto y
+> probado; `Attempt`, sus casos de uso y adapters ya existen. Sigue pendiente
+> convertir las escrituras secuenciales del intento en una única
+> `TransactWriteItems`, habilitar Bedrock solo con retención cero demostrada e
+> integrar el cliente TypeScript con el frontend de Jerick.
 
 ## Fase 0 — Decisiones y contrato
 
@@ -26,17 +26,13 @@
 
 ## Fase 2 — Dominio
 
-- [ ] 7. Escribir tests rojos de Challenge/Attempt/Progress
+- [x] 7. Escribir tests rojos de Challenge/Attempt/Progress
   - _Requisitos: R3, R4_
-  - _Avance parcial: `tests/unit/domain/test_challenge.py` y
-    `test_progress.py` cubren `Challenge` y `Progress`. `Attempt` (necesario
-    para `POST .../intentos`) no tiene tests todavía; no marcar completa._
-- [ ] 8. Implementar el mínimo y refactorizar dominio
+  - _Verificado: `test_challenge.py`, `test_attempt.py` y `test_progress.py`._
+- [x] 8. Implementar el mínimo y refactorizar dominio
   - _Requisitos: R3, R4_
-  - _Avance parcial: `domain/challenge.py` (`Challenge`, `Grading`,
-    `MessageKind`, errores de expiración/doble respuesta) y
-    `domain/progress.py` (`Progress.record_attempt`) implementados y en
-    verde. `Attempt` pendiente._
+  - _Verificado: `Challenge`, `Attempt` y `Progress`, incluidos expiración,
+    doble respuesta y fórmula autoritativa de puntaje._
 - [ ] 9. Escribir tests rojos de factories para las cuatro apps
   - _Requisitos: R3_
   - _Nota: no se escribieron factories que construyan el payload completo por
@@ -67,38 +63,34 @@
     (`EligibilitySpecification`, `RoundRobinScenarioSelectionStrategy`)._
 - [ ] 13. Escribir e implementar guardrails con fallback curado
   - _Requisitos: R6_
-  - _No iniciada: solo existe la fuente `curated`; no hay generación IA ni
-    cadena de guardrails todavía._
+  - _Avance parcial: `ConversationReply` exige consentimiento
+    `serverSideAi`, no persiste historial, detiene presión ante negativa y
+    responde únicamente desde contenido curado. Bedrock y su cadena completa
+    permanecen apagados por ADR-005._
 
 ## Fase 3 — Aplicación y adapters
 
-- [ ] 14. Implementar casos de uso con repositories falsos
+- [x] 14. Implementar casos de uso con repositories falsos
   - _Requisitos: R2, R3, R4_
-  - _Avance parcial: `IssueNextChallenge` implementado y probado con fakes en
-    `tests/unit/application/test_issue_next_challenge.py` (ownership,
-    consentimiento, no repetición). Falta el caso de uso de intento
-    (tarea 16)._
-- [ ] 15. Crear adapters DynamoDB con contract tests
+  - _Verificado: emisión, intento, progreso, cuenta, consentimiento, perfiles
+    y borrado con repositories en memoria y pruebas de ownership/idempotencia._
+- [x] 15. Crear adapters DynamoDB con contract tests
   - _Requisitos: R2_
-  - _Avance parcial: `adapters/dynamodb_game_repositories.py`
-    (`ChallengeDynamoDbRepository`, `ProgressDynamoDbRepository`) con
-    contract tests en `tests/contract/test_dynamodb_game_repositories.py`
-    (Stubber, sin `Scan`). Falta el repository de `Attempt` e idempotencia
-    del intento._
+  - _Verificado: repositories de cuenta, consentimiento, perfiles, retos,
+    intentos, progreso e idempotencia con Stubber y sin `Scan`._
 - [ ] 16. Implementar transacción e idempotencia del intento
   - _Requisitos: R4_
-  - _No iniciada: `POST /v1/retos/{challengeId}/intentos` no existe. El
-    modelo actual de `Challenge`/`Progress` está listo para que esta tarea
-    construya la `TransactWriteItems` de ADR-003 sobre él._
+  - _Avance parcial: `POST /v1/retos/{challengeId}/intentos` funciona, la
+    clave idempotente se guarda como digest HMAC y el replay fue probado en
+    Floci. Falta agrupar Attempt + Challenge + Progress + Idempotency en una
+    única `TransactWriteItems` como exige ADR-003._
 - [ ] 17. Crear adapter Bedrock y pruebas de retención/guardrails
   - _Requisitos: R6_
 - [x] 18. Crear entrypoint FastAPI/Web Adapter y tests HTTP
   - _Requisitos: R1, R7_
-  - _Verificado para el alcance actual: `GET /v1/perfiles/{child_id}/retos/
-    siguiente` (scope `game.play`) en `routes_profiles.py`, con tests HTTP en
-    `tests/unit/entrypoints/test_routes_next_challenge.py` (oculta `grading`,
-    exige scope, IDOR entre dos adultos). `POST .../intentos` queda para la
-    tarea 16; no marcar esta tarea como cerrando ese endpoint._
+  - _Verificado: rutas de cuenta, consentimiento, perfiles, retos, intentos,
+    progreso e IA curada; paridad OpenAPI/Terraform y puente ASGI exclusivo de
+    Floci. El payload visible no filtra grading ni el tipo correcto._
 - [x] 18.1 Exponer `GET /v1/apps` público sobre `list_channels()`, con
       `Cache-Control` corto y tests HTTP que verifiquen que no filtra
       escenarios, señales ni respuestas correctas
@@ -116,8 +108,13 @@
   - _Requisitos: R2, R8_
 - [ ] 21. Ejecutar plan revisado y desplegar únicamente a `dev`
   - _Requisitos: R8_
+  - _Avance: plan/apply completo en el emulador Floci de `dev`; AWS real no
+    fue modificado._
 - [ ] 22. Ejecutar integration/E2E y pruebas de seguridad en `dev`
   - _Requisitos: R1-R8_
+  - _Avance: E2E en Floci cubre health, 401 sin token, cuenta, consentimiento,
+    perfil, reto, intento, progreso y replay idempotente. Falta el gate contra
+    AWS real y revisar rate limiting/logs operativos._
 
 ## Fase 5 — Integración
 
@@ -130,6 +127,6 @@
 - [ ] 25. Ejecutar gate de lanzamiento del PRD y actualizar documentación
   - _Requisitos: R1-R8_
 
-Siguiente responsable: **Francis** en tarea 1. Jerick participa desde 23 y Clau
-aprueba contratos de escenarios/score antes de 24.
-
+Siguiente responsable: **Francis** en 3, 5 y 16. **Jerick** participa desde 23
+sin que backend toque su frontend; **Clau** aprueba contratos de
+escenarios/score antes de 24.

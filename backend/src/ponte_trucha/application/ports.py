@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Protocol
 
+from ponte_trucha.domain.attempt import Attempt
 from ponte_trucha.domain.challenge import Challenge
 from ponte_trucha.domain.child_profile import ChildProfile
 from ponte_trucha.domain.consent import ConsentRecord
@@ -47,6 +48,8 @@ class ParentAccountRepository(Protocol):
 
     def save(self, account: ParentAccount) -> None: ...
 
+    def delete(self, *, parent_ref: str) -> None: ...
+
 
 class ConsentRepository(Protocol):
     """Acceso a las decisiones de consentimiento de un adulto."""
@@ -56,6 +59,8 @@ class ConsentRepository(Protocol):
     def list_for_parent(self, *, parent_ref: str) -> tuple[ConsentRecord, ...]: ...
 
     def save(self, *, parent_ref: str, record: ConsentRecord) -> None: ...
+
+    def delete_for_parent(self, *, parent_ref: str) -> None: ...
 
 
 class ChildProfileRepository(Protocol):
@@ -71,15 +76,21 @@ class ChildProfileRepository(Protocol):
 
     def delete(self, *, parent_ref: str, child_id: str) -> None: ...
 
+    def delete_for_parent(self, *, parent_ref: str) -> None: ...
+
 
 class ChallengeRepository(Protocol):
     """Acceso a retos emitidos, bajo la partición infantil (ADR-003)."""
 
     def get(self, *, child_id: str, challenge_id: str) -> Challenge | None: ...
 
-    def create(self, *, child_id: str, challenge: Challenge) -> None: ...
+    def locate_child(self, *, parent_ref: str, challenge_id: str) -> str | None: ...
+
+    def create(self, *, parent_ref: str, child_id: str, challenge: Challenge) -> None: ...
 
     def save(self, *, child_id: str, challenge: Challenge) -> None: ...
+
+    def delete_for_child(self, *, parent_ref: str, child_id: str) -> None: ...
 
 
 class ProgressRepository(Protocol):
@@ -88,3 +99,13 @@ class ProgressRepository(Protocol):
     def get(self, *, child_id: str) -> Progress: ...
 
     def save(self, *, child_id: str, progress: Progress) -> None: ...
+
+    def delete(self, *, child_id: str) -> None: ...
+
+
+class AttemptRepository(Protocol):
+    """Persistencia de intentos cerrados; nunca recibe texto libre."""
+
+    def create(self, *, child_id: str, attempt: Attempt) -> None: ...
+
+    def delete_for_child(self, *, child_id: str) -> None: ...

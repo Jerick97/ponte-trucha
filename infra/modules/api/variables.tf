@@ -144,3 +144,9 @@ variable "web_adapter_layer_arn" {
   type        = string
   nullable    = true
 }
+
+variable "use_native_python_handler" {
+  default     = false
+  description = "Usa el puente ASGI Python solo en Floci, que no ejecuta extensiones Lambda."
+  type        = bool
+}

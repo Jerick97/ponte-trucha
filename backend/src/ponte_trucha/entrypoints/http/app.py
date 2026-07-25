@@ -9,6 +9,7 @@ from ponte_trucha.entrypoints.http.composition import build_parent_ref_deriver, 
 from ponte_trucha.entrypoints.http.problem_details import domain_error_handler
 from ponte_trucha.entrypoints.http.routes_account import register_account_routes
 from ponte_trucha.entrypoints.http.routes_apps import register_apps_routes
+from ponte_trucha.entrypoints.http.routes_game import register_game_routes
 from ponte_trucha.entrypoints.http.routes_profiles import register_profile_routes
 
 PROBLEM_NOT_FOUND = "https://ponte-trucha.pe/problems/not-found"
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(register_account_routes(base_adult_dependency=base_adult_dependency))
     app.include_router(register_profile_routes(base_adult_dependency=base_adult_dependency))
+    app.include_router(register_game_routes(base_adult_dependency=base_adult_dependency))
     app.include_router(register_apps_routes())
 
     return app

@@ -77,8 +77,8 @@ run "protects_account_consent_and_profile_routes_with_jwt_scopes" {
   command = plan
 
   assert {
-    condition     = length(aws_apigatewayv2_route.protected) == 8
-    error_message = "Deben existir las 8 rutas protegidas de cuenta, consentimiento, perfiles y retos."
+    condition     = length(aws_apigatewayv2_route.protected) == 14
+    error_message = "Deben existir las 14 rutas protegidas de cuenta, consentimiento, perfiles y retos."
   }
 
   assert {
@@ -107,6 +107,11 @@ run "protects_account_consent_and_profile_routes_with_jwt_scopes" {
   assert {
     condition     = tolist(aws_apigatewayv2_route.protected["update_consent"].authorization_scopes)[0] == "${var.cognito_resource_server_identifier}/consents.write"
     error_message = "Actualizar consentimiento debe exigir el scope consents.write."
+  }
+
+  assert {
+    condition     = aws_apigatewayv2_route.conversation_reply.authorization_type == "JWT" && tolist(aws_apigatewayv2_route.conversation_reply.authorization_scopes)[0] == "${var.cognito_resource_server_identifier}/game.play"
+    error_message = "La conversación server-side debe exigir JWT y el scope game.play."
   }
 }
 

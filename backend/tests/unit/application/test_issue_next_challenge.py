@@ -100,12 +100,14 @@ def _bootstrap() -> tuple[
 def _use_case(
     *,
     accounts: InMemoryParentAccountRepository,
+    consents: InMemoryConsentRepository,
     profiles: InMemoryChildProfileRepository,
     challenges: InMemoryChallengeRepository,
     progresses: InMemoryProgressRepository,
 ) -> IssueNextChallenge:
     return IssueNextChallenge(
         accounts=accounts,
+        consents=consents,
         profiles=profiles,
         challenges=challenges,
         progresses=progresses,
@@ -121,9 +123,10 @@ def _use_case(
 
 
 def test_issuing_a_challenge_hides_grading_and_returns_visible_payload_only() -> None:
-    accounts, _consents, profiles, child_id = _bootstrap()
+    accounts, consents, profiles, child_id = _bootstrap()
     use_case = _use_case(
         accounts=accounts,
+        consents=consents,
         profiles=profiles,
         challenges=InMemoryChallengeRepository(),
         progresses=InMemoryProgressRepository(),
@@ -167,6 +170,7 @@ def test_issuing_a_challenge_for_a_profile_owned_by_another_adult_is_rejected() 
     )
     use_case = _use_case(
         accounts=accounts,
+        consents=consents,
         profiles=profiles,
         challenges=InMemoryChallengeRepository(),
         progresses=InMemoryProgressRepository(),
@@ -177,11 +181,15 @@ def test_issuing_a_challenge_for_a_profile_owned_by_another_adult_is_rejected() 
 
 
 def test_issuing_a_challenge_never_repeats_a_recently_seen_scenario() -> None:
-    accounts, _consents, profiles, child_id = _bootstrap()
+    accounts, consents, profiles, child_id = _bootstrap()
     challenges = InMemoryChallengeRepository()
     progresses = InMemoryProgressRepository()
     use_case = _use_case(
-        accounts=accounts, profiles=profiles, challenges=challenges, progresses=progresses
+        accounts=accounts,
+        consents=consents,
+        profiles=profiles,
+        challenges=challenges,
+        progresses=progresses,
     )
 
     first = use_case.execute(ADULT, child_id=child_id)

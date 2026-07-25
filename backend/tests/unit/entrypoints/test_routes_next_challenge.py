@@ -11,7 +11,7 @@ def _onboard_child(client: TestClient, *, sub: str) -> tuple[dict[str, str], str
     client.patch(
         "/v1/consentimientos/core",
         json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
-        headers=headers,
+        headers={**headers, "Idempotency-Key": f"grant-core-{sub}"},
     )
     created = client.post(
         "/v1/perfiles",
@@ -31,6 +31,7 @@ def test_next_challenge_never_exposes_grading_fields() -> None:
     body = response.json()
     assert set(body.keys()) == {"challengeId", "appType", "difficulty", "payload", "validUntil"}
     assert "respuestaCorrecta" not in body["payload"]
+    assert "tipo" not in body["payload"]
     assert "senales" not in body["payload"]
     assert "leccion" not in body["payload"]
 

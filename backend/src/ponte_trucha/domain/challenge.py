@@ -15,6 +15,7 @@ from enum import StrEnum
 from typing import Any
 
 from ponte_trucha.domain.channels import AppType
+from ponte_trucha.domain.errors import DomainError
 from ponte_trucha.domain.value_objects import Difficulty
 
 
@@ -29,12 +30,16 @@ class MessageKind(StrEnum):
     LEGITIMATE = "legitimate"
 
 
-class ChallengeAlreadyAnsweredError(Exception):
+class ChallengeAlreadyAnsweredError(DomainError):
     """Se intentó responder un reto que ya tiene un intento calificado."""
 
+    code = "CHALLENGE_ALREADY_ANSWERED"
 
-class ChallengeExpiredError(Exception):
+
+class ChallengeExpiredError(DomainError):
     """Se intentó responder un reto después de `valid_until`."""
+
+    code = "CHALLENGE_EXPIRED"
 
 
 @dataclass(frozen=True, slots=True)

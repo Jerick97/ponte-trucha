@@ -21,5 +21,9 @@ def profile_sk(child_id: str) -> str:
     return f"PROFILE#{child_id}"
 
 
+def challenge_locator_sk(challenge_id: str) -> str:
+    return f"CHALLENGE#{challenge_id}"
+
+
 PROFILE_SK_PREFIX = "PROFILE#"
 CONSENT_SK_PREFIX = "CONSENT#"

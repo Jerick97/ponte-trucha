@@ -9,11 +9,13 @@ from __future__ import annotations
 from pydantic import BaseModel, ConfigDict, Field
 
 from ponte_trucha.application.update_consent import ConsentDecision
-from ponte_trucha.domain.challenge import Challenge
+from ponte_trucha.domain.attempt import ResponseTimeBucket
+from ponte_trucha.domain.challenge import Challenge, MessageKind
 from ponte_trucha.domain.channels import ChannelInfo
 from ponte_trucha.domain.child_profile import ChildProfile
 from ponte_trucha.domain.consent import ConsentRecord
 from ponte_trucha.domain.parent_account import ParentAccount
+from ponte_trucha.domain.progress import Progress
 from ponte_trucha.domain.value_objects import AgeBand, ConsentPurpose
 
 
@@ -72,6 +74,10 @@ class UpdateConsentRequest(_CamelModel):
     decision: ConsentDecision
     policy_version: str = Field(min_length=1, max_length=64)
     method: str = Field(min_length=1, max_length=64)
+
+
+class PutConsentRequest(UpdateConsentRequest):
+    purpose: ConsentPurpose
 
 
 class ChildProfileResponse(_CamelModel):
@@ -143,4 +149,41 @@ class NextChallengeResponse(_CamelModel):
             difficulty=visible["difficulty"],
             payload=visible["payload"],
             valid_until=visible["validUntil"],
+        )
+
+
+class SubmitAttemptRequest(_CamelModel):
+    decision: MessageKind
+    response_time_bucket: ResponseTimeBucket = ResponseTimeBucket.UNKNOWN
+
+
+class AttemptResultResponse(_CamelModel):
+    attempt_id: str
+    challenge_id: str
+    is_correct: bool
+    points_awarded: int
+    score: int
+    streak: int
+    total_attempts: int
+    correct_attempts: int
+    current_difficulty: int
+    signal_codes: tuple[str, ...]
+    feedback_code: str
+
+
+class ProgressResponse(_CamelModel):
+    score: int
+    streak: int
+    total_attempts: int
+    correct_attempts: int
+    current_difficulty: int
+
+    @classmethod
+    def from_domain(cls, progress: Progress) -> ProgressResponse:
+        return cls(
+            score=progress.score,
+            streak=progress.streak,
+            total_attempts=progress.total_attempts,
+            correct_attempts=progress.correct_attempts,
+            current_difficulty=progress.current_difficulty.value,
         )

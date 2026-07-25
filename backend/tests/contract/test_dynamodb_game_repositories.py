@@ -58,10 +58,15 @@ def test_challenge_create_uses_condition_to_avoid_duplicates() -> None:
         {},
         {"TableName": TABLE_NAME, "Item": ANY, "ConditionExpression": "attribute_not_exists(PK)"},
     )
+    stubber.add_response(
+        "put_item",
+        {},
+        {"TableName": TABLE_NAME, "Item": ANY, "ConditionExpression": "attribute_not_exists(PK)"},
+    )
     stubber.activate()
     repo = ChallengeDynamoDbRepository(table)
 
-    repo.create(child_id="child-1", challenge=_challenge())
+    repo.create(parent_ref="parent-1", child_id="child-1", challenge=_challenge())
 
     stubber.deactivate()
     stubber.assert_no_pending_responses()

@@ -44,11 +44,10 @@
   - _Coordinación: toca UI de Jerick y estado compartido; avisar antes_
 - [ ] 10. Implementar revocación, borrado y sus pruebas de integración
   - _Requisitos: R3, R5_
-  - _Avance parcial: `UpdateConsent.revoke` y `DeleteChildProfile` (borrado
-    simple) están implementados y probados. Falta el workflow completo de
-    ADR-003 (`DeletionJob`, cursor reanudable, limpieza de idempotencia y
-    localizadores) porque depende de los agregados `Challenge`/`Attempt` que
-    aún no existen. No marcar como completada hasta cubrir ese workflow._
+  - _Avance parcial: revocación y borrado limpian cuenta/perfil, consentimientos,
+    retos, intentos, progreso, localizadores e idempotencia, con replay e IDOR
+    probados. Falta el `DeletionJob` con cursor reanudable de ADR-003 para
+    garantizar recuperación ante fallos parciales._
 - [ ] 11. Ejecutar pruebas IDOR, logging sin PII y revisión de seguridad
   - _Requisitos: R6_
   - _Avance parcial: las pruebas IDOR de la tarea 5 cubren perfiles. Falta
@@ -59,4 +58,3 @@
 
 Siguiente responsable: **Francis** en 1, 2, 9 (coordina con Jerick), 10, 11 y
 12. Los textos legales de la tarea 2 los define **Clau/PM + asesoría legal**.
-

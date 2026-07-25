@@ -66,6 +66,12 @@ class IdempotencyConflictError(DomainError):
     code = "IDEMPOTENCY_CONFLICT"
 
 
+class ChallengeNotFoundError(DomainError):
+    """El reto no existe o no pertenece al adulto autenticado."""
+
+    code = "CHALLENGE_NOT_FOUND"
+
+
 class NoEligibleScenarioError(DomainError):
     """El banco curado no tiene ningún escenario elegible para emitir."""
 

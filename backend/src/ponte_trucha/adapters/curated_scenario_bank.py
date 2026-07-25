@@ -35,7 +35,9 @@ _CHANNEL_TO_APP_TYPE: dict[str, AppType] = {
 
 # Campos del escenario JSON que son calificación (grading) y nunca deben
 # llegar al `payload` visible que ve el cliente antes de responder.
-_GRADING_ONLY_FIELDS = frozenset({"respuestaCorrecta", "senales", "leccion", "perfilEstafador"})
+_GRADING_ONLY_FIELDS = frozenset(
+    {"respuestaCorrecta", "senales", "leccion", "perfilEstafador", "tipo"}
+)
 
 _BUNDLED_BANK_PATH = Path(__file__).parent / "data" / "escenarios.json"
 _MONOREPO_BANK_PATH = Path(__file__).parents[4] / "src" / "data" / "escenarios.json"

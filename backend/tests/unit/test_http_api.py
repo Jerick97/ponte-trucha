@@ -29,9 +29,9 @@ def test_unknown_route_uses_problem_details_without_internal_detail() -> None:
     }
 
 
-def test_ia_lambda_starts_disabled_without_exposing_generation() -> None:
+def test_ia_lambda_starts_in_curated_only_mode() -> None:
     response = TestClient(create_ia_app()).get("/v1/ia/health")
 
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-store"
-    assert response.json() == {"service": "api-ia", "status": "disabled"}
+    assert response.json() == {"service": "api-ia", "status": "curated-only"}

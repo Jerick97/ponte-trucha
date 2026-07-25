@@ -12,9 +12,11 @@ from dataclasses import dataclass
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from ponte_trucha.domain.challenge import ChallengeAlreadyAnsweredError, ChallengeExpiredError
 from ponte_trucha.domain.errors import (
     AccountNotActiveError,
     AccountNotFoundError,
+    ChallengeNotFoundError,
     ConsentRequiredError,
     DomainError,
     IdempotencyConflictError,
@@ -38,6 +40,9 @@ class _ProblemMapping:
 _MAPPINGS: dict[type[DomainError], _ProblemMapping] = {
     AccountNotActiveError: _ProblemMapping(409, "Cuenta en proceso de borrado"),
     AccountNotFoundError: _ProblemMapping(404, "Cuenta no encontrada"),
+    ChallengeAlreadyAnsweredError: _ProblemMapping(409, "Reto ya respondido"),
+    ChallengeExpiredError: _ProblemMapping(409, "Reto expirado"),
+    ChallengeNotFoundError: _ProblemMapping(404, "Reto no encontrado"),
     ConsentRequiredError: _ProblemMapping(403, "Falta consentimiento vigente"),
     IdempotencyConflictError: _ProblemMapping(409, "Conflicto de idempotencia"),
     InvalidConsentTransitionError: _ProblemMapping(409, "Transición de consentimiento inválida"),

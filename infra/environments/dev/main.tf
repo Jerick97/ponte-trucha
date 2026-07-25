@@ -96,5 +96,6 @@ module "api" {
   owner                              = var.owner
   project                            = var.project
   require_web_adapter_layer          = !var.use_floci
+  use_native_python_handler          = var.use_floci
   web_adapter_layer_arn              = var.web_adapter_layer_arn
 }

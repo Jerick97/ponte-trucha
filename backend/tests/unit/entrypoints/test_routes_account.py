@@ -73,7 +73,7 @@ def test_update_consent_grants_core_purpose() -> None:
     response = client.patch(
         "/v1/consentimientos/core",
         json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
-        headers=headers,
+        headers={**headers, "Idempotency-Key": "grant-core-1"},
     )
 
     assert response.status_code == 200
@@ -88,7 +88,7 @@ def test_update_consent_with_stale_policy_version_returns_problem_details() -> N
     response = client.patch(
         "/v1/consentimientos/core",
         json={"decision": "grant", "policyVersion": "privacy-v0", "method": "explicit-click"},
-        headers=headers,
+        headers={**headers, "Idempotency-Key": "stale-core-1"},
     )
 
     assert response.status_code == 409
@@ -106,7 +106,10 @@ def test_two_different_subs_get_isolated_accounts() -> None:
     client.patch(
         "/v1/consentimientos/core",
         json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
-        headers=request_context_header(sub="sub-a"),
+        headers={
+            **request_context_header(sub="sub-a"),
+            "Idempotency-Key": "grant-core-a",
+        },
     )
 
     response_b = client.get("/v1/consentimientos", headers=request_context_header(sub="sub-b"))

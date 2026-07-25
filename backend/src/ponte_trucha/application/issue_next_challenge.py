@@ -21,10 +21,12 @@ from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 
 from ponte_trucha.application.authenticated_adult import AuthenticatedAdult
+from ponte_trucha.application.policy import CURRENT_PRIVACY_POLICY_VERSION
 from ponte_trucha.application.ports import (
     ChallengeRepository,
     ChildProfileRepository,
     Clock,
+    ConsentRepository,
     IdGenerator,
     ParentAccountRepository,
     ProgressRepository,
@@ -33,6 +35,7 @@ from ponte_trucha.domain.challenge import Challenge, Grading, MessageKind
 from ponte_trucha.domain.difficulty_strategy import DifficultyStrategy
 from ponte_trucha.domain.errors import (
     AccountNotFoundError,
+    ConsentRequiredError,
     NoEligibleScenarioError,
     ProfileNotFoundError,
 )
@@ -42,7 +45,7 @@ from ponte_trucha.domain.scenario_selection import (
     EligibilitySpecification,
     ScenarioSelectionStrategy,
 )
-from ponte_trucha.domain.value_objects import Difficulty
+from ponte_trucha.domain.value_objects import ConsentPurpose, Difficulty
 
 _DEFAULT_VALIDITY_MINUTES = 30
 
@@ -50,6 +53,7 @@ _DEFAULT_VALIDITY_MINUTES = 30
 @dataclass(frozen=True, slots=True)
 class IssueNextChallenge:
     accounts: ParentAccountRepository
+    consents: ConsentRepository
     profiles: ChildProfileRepository
     challenges: ChallengeRepository
     progresses: ProgressRepository
@@ -71,6 +75,10 @@ class IssueNextChallenge:
         profile = self.profiles.get(parent_ref=adult.parent_ref, child_id=child_id)
         if profile is None or not profile.is_active:
             raise ProfileNotFoundError("El perfil no existe o no pertenece a este adulto.")
+
+        core_consent = self.consents.get(parent_ref=adult.parent_ref, purpose=ConsentPurpose.CORE)
+        if core_consent is None or not core_consent.is_active_for(CURRENT_PRIVACY_POLICY_VERSION):
+            raise ConsentRequiredError("Se requiere consentimiento core vigente.")
 
         progress = self.progresses.get(child_id=child_id)
         difficulty_decision = self.difficulty_strategy.next_difficulty(progress)
@@ -112,7 +120,7 @@ class IssueNextChallenge:
             issued_at=_parse_rfc3339(issued_at),
             valid_until=valid_until_dt,
         )
-        self.challenges.create(child_id=child_id, challenge=challenge)
+        self.challenges.create(parent_ref=adult.parent_ref, child_id=child_id, challenge=challenge)
         if progress_at_target_difficulty is not progress:
             self.progresses.save(child_id=child_id, progress=progress_at_target_difficulty)
 

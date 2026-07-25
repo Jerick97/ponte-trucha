@@ -57,10 +57,10 @@ def _build_lambda(lambda_name: str) -> Path:
         shutil.copytree(SOURCE_ROOT / "ponte_trucha", staging_root / "ponte_trucha")
         shutil.copy2(script_path, staging_root / "run.sh")
 
-        if lambda_name == "api-core":
-            # `api-core` sirve `GET /v1/apps` y `GET /v1/perfiles/{id}/retos/
-            # siguiente` desde el banco curado. `api-ia` no lo necesita: no
-            # expone esas rutas (ver infra/modules/api/main.tf).
+        if lambda_name in {"api-core", "api-ia"}:
+            # Ambos procesos comparten la misma composición. `api-core` sirve
+            # retos y `api-ia` mantiene el fallback curado sin acceder al
+            # frontend ni descargar contenido durante la invocación.
             bank_target = staging_root / "ponte_trucha" / "adapters" / "data"
             bank_target.mkdir(parents=True, exist_ok=True)
             shutil.copy2(CURATED_SCENARIO_BANK_PATH, bank_target / "escenarios.json")

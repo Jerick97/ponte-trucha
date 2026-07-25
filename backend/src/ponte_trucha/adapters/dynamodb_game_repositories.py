@@ -1,13 +1,9 @@
-"""Repositories DynamoDB de `Challenge` y `Progress` (ADR-003, partición infantil).
+"""Repositories DynamoDB del loop de juego (ADR-003, partición infantil).
 
-Alcance actual: solo lo que necesita `IssueNextChallenge`
-(`GET /v1/perfiles/{childId}/retos/siguiente`) — crear/leer un `Challenge` y
-leer/guardar `Progress`. La transacción de intento (`POST .../intentos`,
-tarea 16) todavía no existe, así que estos repositories no implementan
-`revision` con control de concurrencia optimista ni `expiresAt`/TTL; ADR-003
-los define para esa tarea, que debe extenderlos, no reemplazarlos.
-
-Sin `Scan`: solo `GetItem`, `PutItem` y `Query` acotados por `PK`.
+Persiste retos, intentos y progreso con TTL explícito y localizadores de reto
+acotados al adulto. Las operaciones usan `GetItem`, `PutItem`, `DeleteItem` y
+`Query`; nunca `Scan`. La futura unidad transaccional de la tarea 16 debe
+reutilizar estas formas de ítem y agregar control de concurrencia optimista.
 """
 
 from __future__ import annotations
@@ -15,8 +11,19 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from ponte_trucha.adapters.dynamodb_game_keys import PROGRESS_SK, challenge_sk, child_pk
-from ponte_trucha.application.ports import ChallengeRepository, ProgressRepository
+from ponte_trucha.adapters.dynamodb_game_keys import (
+    PROGRESS_SK,
+    attempt_sk,
+    challenge_sk,
+    child_pk,
+)
+from ponte_trucha.adapters.dynamodb_keys import challenge_locator_sk, parent_pk
+from ponte_trucha.application.ports import (
+    AttemptRepository,
+    ChallengeRepository,
+    ProgressRepository,
+)
+from ponte_trucha.domain.attempt import Attempt
 from ponte_trucha.domain.challenge import Challenge, ChallengeStatus, Grading, MessageKind
 from ponte_trucha.domain.channels import AppType
 from ponte_trucha.domain.progress import Progress
@@ -39,14 +46,61 @@ class ChallengeDynamoDbRepository(ChallengeRepository):
         item = response.get("Item")
         return _challenge_from_item(item) if item else None
 
-    def create(self, *, child_id: str, challenge: Challenge) -> None:
+    def locate_child(self, *, parent_ref: str, challenge_id: str) -> str | None:
+        response = self._table.get_item(
+            Key={
+                "PK": parent_pk(parent_ref),
+                "SK": challenge_locator_sk(challenge_id),
+            },
+            ConsistentRead=True,
+        )
+        item = response.get("Item")
+        return str(item["childId"]) if item else None
+
+    def create(self, *, parent_ref: str, child_id: str, challenge: Challenge) -> None:
         self._table.put_item(
             Item=_challenge_to_item(child_id, challenge),
+            ConditionExpression="attribute_not_exists(PK)",
+        )
+        self._table.put_item(
+            Item={
+                "PK": parent_pk(parent_ref),
+                "SK": challenge_locator_sk(challenge.challenge_id),
+                "entityType": "ChallengeLocator",
+                "childId": child_id,
+                "createdAt": challenge.issued_at.isoformat().replace("+00:00", "Z"),
+                "validUntil": challenge.valid_until.isoformat().replace("+00:00", "Z"),
+                "expiresAt": int(challenge.valid_until.timestamp()) + 7 * 24 * 60 * 60,
+            },
             ConditionExpression="attribute_not_exists(PK)",
         )
 
     def save(self, *, child_id: str, challenge: Challenge) -> None:
         self._table.put_item(Item=_challenge_to_item(child_id, challenge))
+
+    def delete_for_child(self, *, parent_ref: str, child_id: str) -> None:
+        child_response = self._table.query(
+            KeyConditionExpression="PK = :pk",
+            ExpressionAttributeValues={":pk": child_pk(child_id)},
+            ProjectionExpression="PK, SK",
+        )
+        with self._table.batch_writer() as batch:
+            for item in child_response.get("Items", []):
+                batch.delete_item(Key={"PK": item["PK"], "SK": item["SK"]})
+
+        locator_response = self._table.query(
+            KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
+            FilterExpression="childId = :child_id",
+            ExpressionAttributeValues={
+                ":pk": parent_pk(parent_ref),
+                ":prefix": "CHALLENGE#",
+                ":child_id": child_id,
+            },
+            ProjectionExpression="PK, SK, childId",
+        )
+        with self._table.batch_writer() as batch:
+            for item in locator_response.get("Items", []):
+                batch.delete_item(Key={"PK": item["PK"], "SK": item["SK"]})
 
 
 class ProgressDynamoDbRepository(ProgressRepository):
@@ -73,6 +127,47 @@ class ProgressDynamoDbRepository(ProgressRepository):
     def save(self, *, child_id: str, progress: Progress) -> None:
         self._table.put_item(Item=_progress_to_item(child_id, progress))
 
+    def delete(self, *, child_id: str) -> None:
+        self._table.delete_item(Key={"PK": child_pk(child_id), "SK": PROGRESS_SK})
+
+
+class AttemptDynamoDbRepository(AttemptRepository):
+    def __init__(self, table: Table) -> None:
+        self._table = table
+
+    def create(self, *, child_id: str, attempt: Attempt) -> None:
+        answered_at = attempt.answered_at.isoformat().replace("+00:00", "Z")
+        self._table.put_item(
+            Item={
+                "PK": child_pk(child_id),
+                "SK": attempt_sk(answered_at, attempt.attempt_id),
+                "entityType": "Attempt",
+                "attemptId": attempt.attempt_id,
+                "challengeId": attempt.challenge_id,
+                "scenarioId": attempt.scenario_id,
+                "appType": attempt.app_type.value,
+                "difficulty": attempt.difficulty.value,
+                "decision": attempt.decision.value,
+                "isCorrect": attempt.is_correct,
+                "pointsAwarded": attempt.points_awarded,
+                "feedbackCode": attempt.feedback_code,
+                "responseTimeBucket": str(attempt.response_time_bucket),
+                "answeredAt": answered_at,
+                "expiresAt": int(attempt.answered_at.timestamp()) + 30 * 24 * 60 * 60,
+            },
+            ConditionExpression="attribute_not_exists(PK)",
+        )
+
+    def delete_for_child(self, *, child_id: str) -> None:
+        response = self._table.query(
+            KeyConditionExpression="PK = :pk AND begins_with(SK, :prefix)",
+            ExpressionAttributeValues={":pk": child_pk(child_id), ":prefix": "ATTEMPT#"},
+            ProjectionExpression="PK, SK",
+        )
+        with self._table.batch_writer() as batch:
+            for item in response.get("Items", []):
+                batch.delete_item(Key={"PK": item["PK"], "SK": item["SK"]})
+
 
 def _challenge_to_item(child_id: str, challenge: Challenge) -> dict[str, Any]:
     item: dict[str, Any] = {
@@ -95,6 +190,7 @@ def _challenge_to_item(child_id: str, challenge: Challenge) -> dict[str, Any]:
         "status": challenge.status.value,
         "issuedAt": challenge.issued_at.isoformat().replace("+00:00", "Z"),
         "validUntil": challenge.valid_until.isoformat().replace("+00:00", "Z"),
+        "expiresAt": int(challenge.valid_until.timestamp()) + 7 * 24 * 60 * 60,
     }
     if challenge.answered_at is not None:
         item["answeredAt"] = challenge.answered_at.isoformat().replace("+00:00", "Z")

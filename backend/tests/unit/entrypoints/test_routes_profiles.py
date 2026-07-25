@@ -11,7 +11,7 @@ def _onboard_adult(client: TestClient, *, sub: str) -> dict[str, str]:
     client.patch(
         "/v1/consentimientos/core",
         json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
-        headers=headers,
+        headers={**headers, "Idempotency-Key": f"grant-core-{sub}"},
     )
     return headers
 
@@ -95,7 +95,10 @@ def test_update_and_delete_profile_round_trip() -> None:
     assert updated.status_code == 200
     assert updated.json()["aliasId"] == "alias-colibri"
 
-    deleted = client.delete(f"/v1/perfiles/{child_id}", headers=headers)
+    deleted = client.delete(
+        f"/v1/perfiles/{child_id}",
+        headers={**headers, "Idempotency-Key": "delete-profile-1"},
+    )
     assert deleted.status_code == 204
 
     listed = client.get("/v1/perfiles", headers=headers)
@@ -125,7 +128,10 @@ def test_adult_b_cannot_read_update_or_delete_adult_a_profile() -> None:
     assert update_by_b.status_code == 404
     assert update_by_b.json()["code"] == "PROFILE_NOT_FOUND"
 
-    delete_by_b = client.delete(f"/v1/perfiles/{child_id}", headers=headers_b)
+    delete_by_b = client.delete(
+        f"/v1/perfiles/{child_id}",
+        headers={**headers_b, "Idempotency-Key": "delete-profile-b"},
+    )
     assert delete_by_b.status_code == 404
     assert delete_by_b.json()["code"] == "PROFILE_NOT_FOUND"
 

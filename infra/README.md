@@ -36,6 +36,9 @@ terraform -chdir=infra/environments/dev plan
 sh scripts/probar-floci.sh
 ```
 
+Floci usa un puente ASGI pequeño incluido en el ZIP porque su runtime local no
+ejecuta la extensión de Lambda Web Adapter. AWS real continúa usando la layer
+oficial; ambas rutas ejercitan el mismo FastAPI y el mismo contrato HTTP.
 Floci no implementa `CreateUserPoolDomain`, AWS Budgets ni el
 etiquetado/configuración de stages HTTP. Solo cuando `use_floci=true` se omiten
 esas operaciones. En AWS real el Hosted UI, presupuesto con alerta, tags, logs
