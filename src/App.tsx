@@ -381,7 +381,7 @@ export default function App() {
   }
 
   return (
-    <div className="relative h-full py-2">
+    <div className="escena-juego relative flex h-full items-center justify-center py-2">
       <button
         type="button"
         onClick={alternarSilencio}
