@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:ruta*",
+      "destination": "https://mrx790mpbc.execute-api.us-east-1.amazonaws.com/:ruta*"
+    },
+    {
+      "source": "/cognito",
+      "destination": "https://cognito-idp.us-east-1.amazonaws.com/"
+    },
+    {
+      "source": "/cognito/:ruta*",
+      "destination": "https://cognito-idp.us-east-1.amazonaws.com/:ruta*"
+    }
+  ]
+}
