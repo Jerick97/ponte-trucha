@@ -13,7 +13,9 @@ export type FinalidadApi = 'core' | 'serverSideAi' | 'productAnalytics';
 
 export type EstadoConsentimientoApi = 'granted' | 'denied' | 'revoked';
 
-export type DecisionConsentimientoApi = 'grant' | 'deny' | 'revoke';
+// El backend solo modela decisiones explicitas del adulto; el estado "denied"
+// nace en el servidor (por defecto o por cambio de politica), nunca via PATCH.
+export type DecisionConsentimientoApi = 'grant' | 'revoke';
 
 /** Banda etaria del perfil infantil. */
 export type BandaEtariaApi = '8-10' | '11-13';

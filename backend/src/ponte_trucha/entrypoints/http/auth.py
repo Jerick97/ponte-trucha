@@ -74,7 +74,11 @@ def _scopes_from_claims(claims: dict[str, object]) -> frozenset[str]:
     raw_scope = claims.get("scope")
     if not isinstance(raw_scope, str) or not raw_scope:
         return frozenset()
-    return frozenset(raw_scope.split(" "))
+    # Cognito emite los scopes del resource server con prefijo
+    # ("ponte-trucha-api/game.play"); las rutas los exigen sin prefijo. Se
+    # aceptan ambas formas para no acoplarse al identificador del pool.
+    scopes = raw_scope.split(" ")
+    return frozenset(scopes) | frozenset(scope.rsplit("/", 1)[-1] for scope in scopes)
 
 
 def build_authenticated_adult_dependency(

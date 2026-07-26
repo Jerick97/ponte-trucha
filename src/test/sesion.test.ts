@@ -153,6 +153,10 @@ beforeEach(() => {
   vi.stubEnv('VITE_API_BASE_URL', '/api');
   vi.stubEnv('VITE_COGNITO_URL', '/cognito');
   vi.stubEnv('VITE_COGNITO_CLIENT_ID', 'client-de-prueba');
+  // La suite prueba el flujo nativo: se apaga OAuth explicitamente para que un
+  // .env.local con las URLs de AWS real no desvie el flujo hacia Hosted UI.
+  vi.stubEnv('VITE_COGNITO_OAUTH_URL', '');
+  vi.stubEnv('VITE_COGNITO_REDIRECT_URI', '');
   vi.stubGlobal('fetch', vi.fn(fetchFalso));
   reiniciarClientes();
   // El almacenamiento se limpia antes de cerrar sesion: asi ningun test hereda
@@ -294,11 +298,11 @@ describe('puertas del flujo', () => {
   it('manda una decision por finalidad, nunca un "acepto todo"', async () => {
     await completarOnboarding();
 
-    expect(consentimientosGuardados).toEqual({
-      core: 'granted',
-      serverSideAi: 'denied',
-      productAnalytics: 'denied',
-    });
+    // El backend solo acepta `grant`/`revoke` explicitos: lo nunca otorgado ya
+    // esta denegado por defecto en el servidor y no genera PATCH.
+    expect(consentimientosGuardados).toEqual({ core: 'granted' });
+    const decisiones = peticiones.filter((p) => p.url.includes('/consentimientos/'));
+    expect(decisiones).toHaveLength(1);
   });
 });
 

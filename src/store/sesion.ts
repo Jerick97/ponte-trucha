@@ -418,10 +418,16 @@ export const useSesion = create<EstadoSesion>((set, get) => ({
     try {
       const api = clienteApi();
       // Una decision por finalidad, versionada: nunca un "acepto todo".
+      // El backend solo acepta `grant` y `revoke` explicitos (update_consent.py):
+      // lo que nunca se otorgo ya esta denegado por defecto en el servidor y no
+      // se envia; `revoke` solo aplica sobre un permiso vigente.
+      const vigente = consentimientoDesdeApi(await api.listarConsentimientos());
       for (const finalidad of ['core', 'serverSideAi', 'productAnalytics'] as const) {
+        const otorga = puedeUsar(consentimiento, finalidad);
+        if (!otorga && !puedeUsar(vigente, finalidad)) continue;
         await api.decidirConsentimiento({
           finalidad: finalidad as FinalidadApi,
-          decision: puedeUsar(consentimiento, finalidad) ? 'grant' : 'deny',
+          decision: otorga ? 'grant' : 'revoke',
           versionPolitica: VERSION_POLITICA,
           metodo: 'explicit-click',
         });

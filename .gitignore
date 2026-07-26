@@ -25,6 +25,7 @@ infra/.artifacts/
 
 # Backend Python
 backend/.venv/
+*.egg-info/
 /.coverage
 backend/.coverage
 backend/.pytest_cache/
