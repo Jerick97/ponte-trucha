@@ -57,3 +57,6 @@ yarn-error.log*
 
 # Grabaciones crudas de pantalla: solo se versiona el clip comprimido
 src/assets/video/Grabaci*n de pantalla*
+
+# Capturas originales sin optimizar (en el README van las versiones optimizadas)
+docs/capture/capture*.png

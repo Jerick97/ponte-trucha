@@ -4,7 +4,7 @@
 
 **El juego que enseña a niños de 8 a 13 años a detectar estafas digitales, practicando en un teléfono simulado antes de encontrarlas en serio.**
 
-[**🎮 Demo en vivo**](https://ponte-trucha.vercel.app) · [Arquitectura](#arquitectura) · [Privacidad](#privacidad-infantil) · [Equipo](#equipo)
+[**🎮 Demo en vivo**](https://ponte-trucha.vercel.app) · [Arquitectura](#arquitectura) · [Decisiones (ADRs)](#decisiones-de-arquitectura) · [Privacidad](#privacidad-infantil) · [Hoja de ruta](#hoja-de-ruta) · [Equipo](#equipo--kikirikillers-)
 
 ![Estado](https://img.shields.io/badge/backend-desplegado%20en%20AWS-232F3E?logo=amazonwebservices)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
@@ -25,6 +25,44 @@ próxima. Sin regaños, sumando puntos y racha.
 La cuenta pertenece al padre, madre o tutor: el adulto pasa un age gate, se
 registra y decide cada permiso por separado. El niño juega con un perfil sin
 correo, sin contraseña, sin nombre real y sin fecha de nacimiento.
+
+## El proyecto en números
+
+| 5 | 11 | 6 | 145 | 6 | 5 |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| apps simuladas | escenarios curados | tipos de estafa | tests automatizados | ADRs registrados | specs de Kiro |
+
+## Cómo se diferencia
+
+| Característica | Cómo funciona |
+|---|---|
+| **Teléfono simulado completo** | WhatsApp, Mensajes, Discord, Roblox y Gmail recreados; la estafa llega por el canal donde llegaría de verdad. |
+| **Estafador conversacional** | El niño puede seguirle la conversación para ver cómo presiona; responde un guion curado con guardrails (IA en la nube solo con permiso explícito). |
+| **Feedback que enseña** | Cada escenario declara sus señales de alerta y la lección; al fallar, el juego muestra la pista exacta que se le pasó, sin regaños. |
+| **Progresión** | Puntos, racha, medallas y nivel de "trucha" que sube con la práctica. |
+| **Privacidad infantil** | La cuenta es del adulto; el perfil del niño no guarda correo, nombre real ni fecha de nacimiento. |
+
+## Así se ve
+
+<p align="center">
+  <img src="docs/capture/demo.gif" width="300" alt="Demo animada de la landing: el teléfono simulado recibe notificaciones de estafa en tiempo real">
+  &nbsp;&nbsp;
+</p>
+
+**La demo en movimiento.** El teléfono simulado recibe los anzuelos como
+llegarían de verdad; el juego celebra el récord y reta a superarlo.
+
+![Landing de Ponte Trucha Kids: un teléfono simulado recibe tres estafas reales — Robux gratis, "se me malogró el cel" y cuenta suspendida](docs/capture/landing.png)
+
+**El anzuelo, tal cual llega.** Robux gratis, el "mamá, se me malogró el cel" y
+la cuenta "suspendida": los tres en la pantalla de inicio, como en un teléfono
+real.
+
+![Una partida completa: la notificación llega al teléfono, el niño decide si es trampa o de confianza y recibe la pista exacta que se le pasó](docs/capture/partida.png)
+
+**Una partida real, en vivo.** Llega la notificación, el niño abre el mensaje,
+decide entre **Es trampa** o **De confianza**, y el feedback le señala la pista
+concreta ("fuiste elegido", "hoy mismo") con la regla para la próxima.
 
 ## Pruébalo
 
@@ -71,7 +109,48 @@ Detalle: [arquitectura](.kiro/steering/arquitectura.md) ·
 [observabilidad](.kiro/docs/observabilidad-y-privacidad.md) ·
 [costos/free tier](.kiro/docs/costos-aws.md).
 
+### Modelo de datos
+
+DynamoDB con capacidad provisionada dentro del free tier, TTL y cifrado. El
+modelo físico (particiones, claves e índices) está documentado en
+[el diagrama](docs/diagramas/modelo-fisico-dynamodb.mmd) y justificado en el
+[ADR-003](.kiro/specs/backend-serverless/adr/ADR-003-modelo-fisico-dynamodb.md).
+
+## Decisiones de arquitectura
+
+Cada decisión relevante quedó registrada como ADR, con su contexto y las
+consecuencias que se aceptaron a conciencia:
+
+| ADR | Decisión |
+|---|---|
+| [ADR-001](.kiro/specs/backend-serverless/adr/ADR-001-lambda-web-adapter-y-empaquetado.md) | Lambda Web Adapter y estrategia de empaquetado |
+| [ADR-002](.kiro/specs/backend-serverless/adr/ADR-002-sesion-cognito-spa.md) | Sesión de Cognito en una SPA (Authorization Code + PKCE) |
+| [ADR-003](.kiro/specs/backend-serverless/adr/ADR-003-modelo-fisico-dynamodb.md) | Modelo físico de DynamoDB |
+| [ADR-004](.kiro/specs/backend-serverless/adr/ADR-004-analitica-desacoplada.md) | Analítica desacoplada del flujo de juego |
+| [ADR-005](.kiro/specs/backend-serverless/adr/ADR-005-bedrock-deshabilitado-hasta-retencion-cero.md) | Bedrock deshabilitado hasta garantizar retención cero |
+| [ADR-006](.kiro/specs/backend-serverless/adr/ADR-006-bedrock-nova-lite-con-retencion-cero.md) | Nova Lite con retención cero como modelo elegido |
+
+## Costos: guardrails antes que facturas
+
+El backend corre en la cuenta del hackathon con una regla dura: **un error de
+configuración debe degradar el servicio antes de generar un cobro**. En la
+práctica:
+
+- DynamoDB con capacidad **provisionada fija** bajo el allowance permanente
+  (25 RCU / 25 WCU sumando tablas): excederla produce throttling, no factura.
+- Lambda con concurrencia reservada baja y timeout corto; API Gateway con
+  throttling por stage.
+- Bedrock apagado por bandera, con kill switch, cuota y fallback al guion
+  curado: nunca se asume gratis.
+- Logs sin payloads, con retención corta explícita.
+- Presupuesto y alarmas de costo activos desde el setup.
+
+El detalle, con fuentes y allowances verificados, está en
+[costos-aws.md](.kiro/docs/costos-aws.md).
+
 ## Privacidad infantil
+
+![Sección de privacidad: el perfil del niño guarda solo apodo de lista, avatar y rango de edad; nunca se piden nombre real, foto, voz, correo, teléfono, fecha de nacimiento, ubicación ni lo que escribe en el chat](docs/capture/privacidad.png)
 
 Es un producto para menores: los límites no son negociables.
 
@@ -111,6 +190,17 @@ usados (Repository, Strategy, Chain of Responsibility para guardrails,
 idempotencia con transacciones condicionales) resuelven necesidades
 demostradas, no decoración.
 
+## Verificación automatizada
+
+- **145 tests en 13 archivos** (Vitest) cubren la lógica pura: motor de juego,
+  medallas, nivel, guardrails del estafador y cliente del LLM.
+- **Validador propio del banco de contenido** (`npm run validar:escenarios`):
+  el compilador no puede validar un JSON de escenarios, así que un script lo
+  contrasta contra su esquema — campos obligatorios, enums de tipo, canal y
+  dificultad, ids únicos y señales bien formadas — antes de cada cambio.
+- ESLint y build de producción completan la verificación; nada se da por
+  terminado sin ejecutarla (así lo exige el propio `CLAUDE.md` del repo).
+
 ## Correr el proyecto
 
 ```bash
@@ -132,6 +222,25 @@ npm run dev
 El juego necesita backend a propósito: sin `.env.local` no hay partida. El
 recorrido completo (incluido el backend Python y el emulador Floci) está en
 [probar en local](.kiro/docs/probar-en-local.md).
+
+## Hoja de ruta
+
+La versión presentada es una demo funcional completa de punta a punta, acotada
+en alcance y diseñada para crecer sin rehacerse:
+
+- **Hosting final en S3 + CloudFront** (hoy Vercel con rewrites hacia API
+  Gateway).
+- **Activar Bedrock Nova Lite** tras verificar retención cero en producción
+  (ADR-006); mientras tanto responde el guion curado.
+- **Observabilidad completa**: CloudWatch, Sentry sanitizado y Mixpanel opt-in,
+  ya especificados; hoy solo corren las alarmas de throttling y presupuesto.
+- **Ampliar el banco de escenarios** con más tipos de estafa y más mensajes
+  legítimos, manteniendo la validación automática.
+- **Revisión legal del mecanismo de consentimiento** antes de cualquier salida
+  a producción real.
+
+El criterio para priorizar no cambia: ninguna mejora entra si compromete la
+privacidad infantil o los guardrails de costo.
 
 ## Equipo — KikiriKillers 🐔
 
