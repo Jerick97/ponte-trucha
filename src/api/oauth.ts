@@ -136,6 +136,27 @@ export async function procesarRetornoOAuth(): Promise<{
   return { sesion, pruebaAgeGate: estado.pruebaAgeGate };
 }
 
+/**
+ * Correo del adulto vía `/oauth2/userInfo`. Los tokens de Hosted UI no tienen
+ * el scope `aws.cognito.signin.user.admin` que exige `GetUser`, pero userInfo
+ * funciona con `openid` + `email`, que ya se piden. Devuelve `null` en vez de
+ * lanzar: quedarse sin correo no debe costar la sesión.
+ */
+export async function correoOAuth(tokenAcceso: string): Promise<string | null> {
+  const config = configuracionOAuth();
+  if (config === null) return null;
+  try {
+    const respuesta = await fetch(`${config.baseUrl}/oauth2/userInfo`, {
+      headers: { Authorization: `Bearer ${tokenAcceso}` },
+    });
+    if (!respuesta.ok) return null;
+    const datos = (await respuesta.json()) as { email?: string; username?: string };
+    return datos.email ?? datos.username ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Renueva una sesión emitida por Hosted UI sin client secret. */
 export async function renovarOAuth(refreshToken: string): Promise<SesionCognito> {
   const config = configuracionOAuth();

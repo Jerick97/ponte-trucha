@@ -26,6 +26,7 @@ import {
   clienteCognito,
   guardarRefreshToken,
   guardarToken,
+  correoOAuth,
   iniciarOAuth,
   leerRefreshToken,
   oauthHabilitado,
@@ -229,7 +230,12 @@ export const useSesion = create<EstadoSesion>((set, get) => ({
         retorno === null
           ? await api.obtenerCuenta()
           : await api.crearCuenta(retorno.pruebaAgeGate.versionRegla);
-      const correo = await cognito.correoDelAdulto(sesion.tokenAcceso);
+      // Con Hosted UI el correo sale de /oauth2/userInfo: GetUser exige el
+      // scope aws.cognito.signin.user.admin, que ese flujo no emite. En ningun
+      // caso un fallo al leer el correo debe tumbar la sesion recien creada.
+      const correo = oauthHabilitado()
+        ? await correoOAuth(sesion.tokenAcceso)
+        : await cognito.correoDelAdulto(sesion.tokenAcceso).catch(() => null);
       const consentimiento = consentimientoDesdeApi(await api.listarConsentimientos());
       const perfiles = puedeUsar(consentimiento, 'core')
         ? (await api.listarPerfiles()).map(perfilDesdeApi)

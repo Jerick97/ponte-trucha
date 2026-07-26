@@ -24,7 +24,7 @@ export {
   configuracionOAuth,
   oauthHabilitado,
 } from './config';
-export { iniciarOAuth, procesarRetornoOAuth, renovarOAuth } from './oauth';
+export { correoOAuth, iniciarOAuth, procesarRetornoOAuth, renovarOAuth } from './oauth';
 export { guardarToken, tokenVigente } from './token';
 export {
   guardarRefreshToken,
