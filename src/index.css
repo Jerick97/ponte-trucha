@@ -1329,6 +1329,60 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Escena del juego: en monitores grandes el gradiente del body se percibe
+   plano y el telefono queda flotando en el vacio. Tinte de marca hacia el
+   centro + vineta que oscurece los bordes: el ojo va directo al telefono.
+   El grano inline (mismo SVG de la landing) quita el acabado plastico. */
+.escena-juego {
+  background-image:
+    radial-gradient(ellipse 55% 65% at 50% 50%, rgb(84 92 214 / 0.18), transparent 70%),
+    radial-gradient(ellipse 140% 120% at 50% 45%, transparent 45%, rgb(24 29 54 / 0.28) 100%);
+}
+
+/* Halo ambilight: la luz del wallpaper "sangra" sobre el fondo claro, como
+   una pantalla encendida en un cuarto. Va en el contenedor ESTATICO (no en
+   .carcasa-3d) para que no rote con el giro del telefono; el perspective del
+   contenedor crea stacking context, asi que z-index -1 lo deja detras de la
+   carcasa pero delante del fondo de la escena. */
+.halo-telefono::before {
+  content: '';
+  position: absolute;
+  inset: 5% 2%;
+  z-index: -1;
+  border-radius: 999px;
+  background: radial-gradient(
+    closest-side,
+    rgb(79 74 189 / 0.55),
+    rgb(47 107 255 / 0.28) 55%,
+    transparent 100%
+  );
+  filter: blur(36px);
+}
+
+/* Sombra de apoyo bajo el equipo: lo ancla al "piso" de la escena. */
+.halo-telefono::after {
+  content: '';
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  bottom: 4px;
+  height: 22px;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(18 20 40 / 0.45), transparent);
+  filter: blur(8px);
+}
+
+.escena-juego::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.3;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
 /* Respeta a quien pide menos animacion (accesibilidad, WCAG 2.2). */
 @media (prefers-reduced-motion: reduce) {
   *,

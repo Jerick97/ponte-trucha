@@ -38,7 +38,7 @@ export function Iphone({
 
   return (
     <div
-      className="mx-auto h-full w-full max-w-[420px] touch-pan-y px-4 py-3 [perspective:1400px]"
+      className="halo-telefono relative mx-auto h-full max-h-[880px] w-full max-w-[420px] touch-pan-y px-4 py-3 [perspective:1400px]"
       onPointerDown={giro.alPresionar}
       onPointerMove={giro.alMover}
       onPointerUp={giro.alSoltar}
