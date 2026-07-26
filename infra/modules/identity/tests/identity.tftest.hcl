@@ -33,3 +33,40 @@ run "creates_an_adult_only_public_spa_client" {
     error_message = "Floci no debe intentar crear el dominio Hosted UI no soportado."
   }
 }
+
+run "derives_the_aws_issuer_when_there_is_no_override" {
+  command = plan
+
+  assert {
+    condition     = startswith(output.issuer, "https://")
+    error_message = "En AWS real el issuer debe ser HTTPS y derivarse del endpoint del pool."
+  }
+
+  assert {
+    condition     = length(output.scope_names) == 6
+    error_message = "El módulo debe publicar los seis scopes para el puente y las rutas."
+  }
+}
+
+run "uses_the_emulator_issuer_when_overridden" {
+  command = plan
+
+  variables {
+    issuer_base_url_override = "http://localhost:4566"
+  }
+
+  assert {
+    condition     = startswith(output.issuer, "http://localhost:4566/")
+    error_message = "Con override, el issuer debe apuntar al host del emulador."
+  }
+}
+
+run "rejects_an_override_with_path" {
+  command = plan
+
+  variables {
+    issuer_base_url_override = "http://localhost:4566/us-east-1_algo"
+  }
+
+  expect_failures = [var.issuer_base_url_override]
+}

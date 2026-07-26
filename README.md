@@ -23,15 +23,18 @@ ni fecha de nacimiento.
 
 | Área | Estado |
 |---|---|
-| Teléfono simulado y loop local | existe un demo frontend |
-| Banco curado y LLM on-device/fallback legado | existe una primera versión |
-| Cognito adulto y consentimiento | especificado; pendiente de Kiro |
-| API Python, DynamoDB y progreso remoto | especificado; pendiente de Kiro |
-| Terraform del backend | especificado; pendiente de Kiro |
+| Teléfono simulado y loop de juego | funciona, ahora contra el backend |
+| Banco curado | lo sirve el backend; el JSON sigue siendo la fuente de contenido |
+| Cognito adulto y consentimiento | implementado; login y consentimientos reales |
+| API Python, DynamoDB y progreso remoto | implementado y probado de punta a punta |
+| Terraform del backend | implementado; aplicado en el emulador local |
+| Despliegue en AWS real | pendiente: falta layer Web Adapter, secreto y presupuesto |
+| Bedrock / IA server-side | apagado por ADR-005; hoy responde el guion curado |
 | CloudWatch, Sentry y Mixpanel | especificado; pendiente de Kiro |
 
-La documentación describe explícitamente la **arquitectura objetivo**. No se
-debe presentar una pieza pendiente como implementada.
+Verificado en el emulador local (Floci), no en AWS real. La documentación
+describe la **arquitectura objetivo**; no se presenta como implementada una
+pieza pendiente. Cómo levantarlo: [probar en local](.kiro/docs/probar-en-local.md).
 
 ## Arquitectura objetivo
 
@@ -135,9 +138,12 @@ npm run dev
 | `npm run test` | tests frontend |
 | `npm run validar:escenarios` | valida banco curado |
 | `npm run build` | build estático |
+| `npm run entorno:floci` | genera `.env.local` desde los outputs de Terraform |
+| `npm run probar:floci` | recorre el API emulado con login real de Cognito |
+| `npm run probar:local` | recorre el API en memoria, sin emulador |
 
-Los comandos Python y Terraform se agregarán únicamente al ejecutar las tareas
-de setup; hoy no se afirma que estén disponibles.
+El juego necesita backend: sin `.env.local` no hay partida, a propósito. El
+recorrido completo está en [probar en local](.kiro/docs/probar-en-local.md).
 
 ## Equipo
 

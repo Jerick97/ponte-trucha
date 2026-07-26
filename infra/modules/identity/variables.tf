@@ -31,6 +31,23 @@ variable "environment" {
   type        = string
 }
 
+variable "issuer_base_url_override" {
+  default     = null
+  description = <<-EOT
+    Base del issuer cuando el proveedor no es AWS real. El emulador local firma
+    los tokens con su propio host (por ejemplo `http://localhost:4566`), así que
+    el JWT authorizer necesita ese valor exacto para validarlos. En AWS se deja
+    en null y el issuer se deriva del endpoint del User Pool.
+  EOT
+  type        = string
+  nullable    = true
+
+  validation {
+    condition     = var.issuer_base_url_override == null || can(regex("^https?://[^/]+$", var.issuer_base_url_override))
+    error_message = "issuer_base_url_override debe ser una URL HTTP(S) sin path final."
+  }
+}
+
 variable "owner" {
   description = "Responsable operativo de los recursos."
   type        = string

@@ -11,7 +11,11 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "test": "vitest run",
     "test:watch": "vitest",
-    "validar:escenarios": "node scripts/validar-escenarios.mjs"
+    "validar:escenarios": "node scripts/validar-escenarios.mjs",
+    "api:local": "backend/.venv/bin/python backend/scripts/dev_server.py",
+    "probar:local": "bash scripts/probar-local.sh",
+    "entorno:floci": "sh scripts/entorno-floci.sh",
+    "probar:floci": "sh scripts/probar-floci.sh"
   },
   "dependencies": {
     "lucide-react": "^1.26.0",

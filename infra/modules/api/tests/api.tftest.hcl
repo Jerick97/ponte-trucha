@@ -73,6 +73,25 @@ run "creates_http_api_with_jwt_and_bounded_lambdas" {
   }
 }
 
+run "uses_the_account_quota_when_reserved_concurrency_is_unavailable" {
+  command = plan
+
+  variables {
+    api_core_reserved_concurrency = -1
+    api_ia_reserved_concurrency   = -1
+  }
+
+  assert {
+    condition     = aws_lambda_function.api_core.reserved_concurrent_executions == -1
+    error_message = "api-core debe poder usar la cuota total baja de la cuenta como límite."
+  }
+
+  assert {
+    condition     = aws_lambda_function.api_ia.reserved_concurrent_executions == -1
+    error_message = "api-ia debe poder usar la cuota total baja de la cuenta como límite."
+  }
+}
+
 run "protects_account_consent_and_profile_routes_with_jwt_scopes" {
   command = plan
 
@@ -142,4 +161,67 @@ run "creates_operational_alarms_outside_floci" {
     condition     = length(aws_cloudwatch_metric_alarm.lambda_throttles) == 2
     error_message = "AWS real debe vigilar throttles de ambas Lambdas."
   }
+}
+
+run "keeps_local_jwt_bridge_off_by_default" {
+  command = plan
+
+  assert {
+    condition = alltrue([
+      for name in ["PTK_LOCAL_JWT_CLAIMS", "PTK_LOCAL_JWT_USER_POOL_ID", "PTK_LOCAL_JWT_SCOPES"] :
+      !contains(keys(one(aws_lambda_function.api_core.environment).variables), name)
+      && !contains(keys(one(aws_lambda_function.api_ia.environment).variables), name)
+    ])
+    error_message = "Sin emulador, ninguna Lambda debe recibir el puente de claims local."
+  }
+}
+
+run "configures_local_jwt_bridge_only_for_the_emulator" {
+  command = plan
+
+  variables {
+    local_jwt_claims = {
+      scopes       = ["game.play", "profiles.read"]
+      user_pool_id = "us-east-1_emulado"
+    }
+    use_native_python_handler = true
+  }
+
+  assert {
+    condition     = one(aws_lambda_function.api_core.environment).variables["PTK_LOCAL_JWT_CLAIMS"] == "enabled"
+    error_message = "El emulador debe habilitar la verificación local del token en api-core."
+  }
+
+  assert {
+    condition     = one(aws_lambda_function.api_ia.environment).variables["PTK_LOCAL_JWT_USER_POOL_ID"] == "us-east-1_emulado"
+    error_message = "El puente local debe apuntar al User Pool del emulador."
+  }
+
+  assert {
+    condition     = one(aws_lambda_function.api_core.environment).variables["PTK_LOCAL_JWT_CLIENT_ID"] == var.audience
+    error_message = "El puente local debe exigir el mismo app client que el authorizer."
+  }
+
+  assert {
+    condition     = one(aws_lambda_function.api_core.environment).variables["PTK_LOCAL_JWT_SCOPES"] == "game.play profiles.read"
+    error_message = "El puente local debe recibir los scopes del resource server separados por espacio."
+  }
+}
+
+run "rejects_the_local_jwt_bridge_on_real_aws" {
+  command = plan
+
+  variables {
+    local_jwt_claims = {
+      scopes       = ["profiles.read"]
+      user_pool_id = "us-east-1_emulado"
+    }
+    require_web_adapter_layer = true
+    web_adapter_layer_arn     = "arn:aws:lambda:us-east-1:753240598075:layer:LambdaAdapterLayerArm64:25"
+  }
+
+  expect_failures = [
+    aws_lambda_function.api_core,
+    aws_lambda_function.api_ia,
+  ]
 }

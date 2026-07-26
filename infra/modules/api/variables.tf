@@ -9,12 +9,12 @@ variable "api_core_package_path" {
 }
 
 variable "api_core_reserved_concurrency" {
-  description = "Concurrencia reservada para api-core."
+  description = "Concurrencia reservada para api-core; -1 usa la cuota baja de la cuenta."
   type        = number
 
   validation {
-    condition     = var.api_core_reserved_concurrency > 0
-    error_message = "api_core_reserved_concurrency debe ser mayor que cero."
+    condition     = var.api_core_reserved_concurrency == -1 || var.api_core_reserved_concurrency > 0
+    error_message = "api_core_reserved_concurrency debe ser -1 o mayor que cero."
   }
 }
 
@@ -29,12 +29,12 @@ variable "api_ia_package_path" {
 }
 
 variable "api_ia_reserved_concurrency" {
-  description = "Concurrencia reservada para api-ia."
+  description = "Concurrencia reservada para api-ia; -1 usa la cuota baja de la cuenta."
   type        = number
 
   validation {
-    condition     = var.api_ia_reserved_concurrency > 0
-    error_message = "api_ia_reserved_concurrency debe ser mayor que cero."
+    condition     = var.api_ia_reserved_concurrency == -1 || var.api_ia_reserved_concurrency > 0
+    error_message = "api_ia_reserved_concurrency debe ser -1 o mayor que cero."
   }
 }
 
@@ -149,4 +149,25 @@ variable "use_native_python_handler" {
   default     = false
   description = "Usa el puente ASGI Python solo en Floci, que no ejecuta extensiones Lambda."
   type        = bool
+}
+
+variable "local_jwt_claims" {
+  default     = null
+  description = <<-EOT
+    Solo para el emulador local: habilita que el puente ASGI verifique el access
+    token del User Pool y reconstruya los claims que API Gateway no propaga.
+    En AWS real se deja en null; el authorizer entrega los claims y los scopes
+    viajan dentro del token.
+  EOT
+  nullable    = true
+
+  type = object({
+    user_pool_id = string
+    scopes       = list(string)
+  })
+
+  validation {
+    condition     = var.local_jwt_claims == null || length(try(var.local_jwt_claims.scopes, [])) > 0
+    error_message = "local_jwt_claims requiere al menos un scope."
+  }
 }

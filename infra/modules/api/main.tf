@@ -1,6 +1,14 @@
 locals {
   api_core_name = "ptk-api-core-${var.environment}"
   api_ia_name   = "ptk-api-ia-${var.environment}"
+  # Solo el emulador local necesita que la Lambda verifique el token y arme los
+  # claims: en AWS real los entrega el JWT authorizer (ADR-002).
+  local_jwt_claims_env = var.local_jwt_claims == null ? {} : {
+    PTK_LOCAL_JWT_CLAIMS       = "enabled"
+    PTK_LOCAL_JWT_CLIENT_ID    = var.audience
+    PTK_LOCAL_JWT_SCOPES       = join(" ", var.local_jwt_claims.scopes)
+    PTK_LOCAL_JWT_USER_POOL_ID = var.local_jwt_claims.user_pool_id
+  }
   lambda_assume_role_policy = jsonencode({
     Statement = [{
       Action    = "sts:AssumeRole"
@@ -134,6 +142,7 @@ resource "aws_lambda_function" "api_core" {
         HMAC_SECRET_ARN        = var.hmac_secret_arn
         IDEMPOTENCY_TABLE_NAME = var.idempotency_table_name
       },
+      local.local_jwt_claims_env,
       var.use_native_python_handler ? {
         PTK_LAMBDA_APP = "core"
         } : var.web_adapter_layer_arn == null ? {} : {
@@ -152,6 +161,11 @@ resource "aws_lambda_function" "api_core" {
     precondition {
       condition     = !var.require_web_adapter_layer || var.web_adapter_layer_arn != null
       error_message = "AWS real requiere web_adapter_layer_arn para iniciar FastAPI con Lambda Web Adapter."
+    }
+
+    precondition {
+      condition     = !var.require_web_adapter_layer || var.local_jwt_claims == null
+      error_message = "local_jwt_claims es exclusivo del emulador: en AWS real los claims y scopes vienen del JWT authorizer."
     }
   }
 
@@ -180,6 +194,7 @@ resource "aws_lambda_function" "api_ia" {
         HMAC_SECRET_ARN        = var.hmac_secret_arn
         IDEMPOTENCY_TABLE_NAME = var.idempotency_table_name
       },
+      local.local_jwt_claims_env,
       var.use_native_python_handler ? {
         PTK_LAMBDA_APP = "ia"
         } : var.web_adapter_layer_arn == null ? {} : {
@@ -198,6 +213,11 @@ resource "aws_lambda_function" "api_ia" {
     precondition {
       condition     = !var.require_web_adapter_layer || var.web_adapter_layer_arn != null
       error_message = "AWS real requiere web_adapter_layer_arn para iniciar FastAPI con Lambda Web Adapter."
+    }
+
+    precondition {
+      condition     = !var.require_web_adapter_layer || var.local_jwt_claims == null
+      error_message = "local_jwt_claims es exclusivo del emulador: en AWS real los claims y scopes vienen del JWT authorizer."
     }
   }
 
@@ -338,27 +358,27 @@ locals {
       scope     = "profiles.write"
     }
     get_profile = {
-      route_key = "GET /v1/perfiles/{child_id}"
+      route_key = "GET /v1/perfiles/{childId}"
       scope     = "profiles.read"
     }
     update_profile = {
-      route_key = "PATCH /v1/perfiles/{child_id}"
+      route_key = "PATCH /v1/perfiles/{childId}"
       scope     = "profiles.write"
     }
     delete_profile = {
-      route_key = "DELETE /v1/perfiles/{child_id}"
+      route_key = "DELETE /v1/perfiles/{childId}"
       scope     = "profiles.write"
     }
     issue_next_challenge = {
-      route_key = "GET /v1/perfiles/{child_id}/retos/siguiente"
+      route_key = "GET /v1/perfiles/{childId}/retos/siguiente"
       scope     = "game.play"
     }
     get_progress = {
-      route_key = "GET /v1/perfiles/{child_id}/progreso"
+      route_key = "GET /v1/perfiles/{childId}/progreso"
       scope     = "profiles.read"
     }
     submit_attempt = {
-      route_key = "POST /v1/retos/{challenge_id}/intentos"
+      route_key = "POST /v1/retos/{challengeId}/intentos"
       scope     = "game.play"
     }
   }

@@ -66,19 +66,23 @@ module "identity" {
   cost_center             = var.cost_center
   enable_hosted_ui_domain = !var.use_floci
   environment             = "dev"
-  owner                   = var.owner
-  project                 = var.project
+  # Floci firma los tokens con su propio host, no con el endpoint AWS del pool.
+  issuer_base_url_override = var.use_floci ? var.floci_issuer_base_url : null
+  owner                    = var.owner
+  project                  = var.project
 }
 
 module "api" {
   source = "../../modules/api"
 
-  api_core_code_hash                 = filebase64sha256("${path.module}/../../.artifacts/api-core.zip")
-  api_core_package_path              = "${path.module}/../../.artifacts/api-core.zip"
-  api_core_reserved_concurrency      = 10
+  api_core_code_hash    = filebase64sha256("${path.module}/../../.artifacts/api-core.zip")
+  api_core_package_path = "${path.module}/../../.artifacts/api-core.zip"
+  # La cuenta tiene cuota total 10 y AWS exige conservarla como no reservada.
+  # Esa cuota compartida más el throttling de API Gateway es el techo de dev.
+  api_core_reserved_concurrency      = -1
   api_ia_code_hash                   = filebase64sha256("${path.module}/../../.artifacts/api-ia.zip")
   api_ia_package_path                = "${path.module}/../../.artifacts/api-ia.zip"
-  api_ia_reserved_concurrency        = 1
+  api_ia_reserved_concurrency        = -1
   audience                           = module.identity.spa_client_id
   cognito_issuer                     = module.identity.issuer
   cognito_resource_server_identifier = module.identity.resource_server_identifier
@@ -93,9 +97,15 @@ module "api" {
   hmac_secret_arn                    = aws_secretsmanager_secret.parent_ref_hmac.arn
   idempotency_table_arn              = module.data.idempotency_table_arn
   idempotency_table_name             = module.data.idempotency_table_name
-  owner                              = var.owner
-  project                            = var.project
-  require_web_adapter_layer          = !var.use_floci
-  use_native_python_handler          = var.use_floci
-  web_adapter_layer_arn              = var.web_adapter_layer_arn
+  # Floci no propaga los claims del authorizer ni emite scopes de resource
+  # server; en ese caso la Lambda verifica el token contra el JWKS del pool.
+  local_jwt_claims = var.use_floci ? {
+    scopes       = module.identity.scope_names
+    user_pool_id = module.identity.user_pool_id
+  } : null
+  owner                     = var.owner
+  project                   = var.project
+  require_web_adapter_layer = !var.use_floci
+  use_native_python_handler = var.use_floci
+  web_adapter_layer_arn     = var.web_adapter_layer_arn
 }

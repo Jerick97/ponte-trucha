@@ -1,6 +1,15 @@
 output "issuer" {
   description = "Issuer esperado por el JWT authorizer de API Gateway."
-  value       = "https://${aws_cognito_user_pool.adults.endpoint}"
+  value = (
+    var.issuer_base_url_override == null
+    ? "https://${aws_cognito_user_pool.adults.endpoint}"
+    : "${var.issuer_base_url_override}/${aws_cognito_user_pool.adults.id}"
+  )
+}
+
+output "scope_names" {
+  description = "Scopes del resource server, sin el identificador que los califica."
+  value       = sort(keys(local.scopes))
 }
 
 output "resource_server_identifier" {

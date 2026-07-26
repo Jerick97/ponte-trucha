@@ -20,6 +20,8 @@ infra/.artifacts/
 *.tfstate
 *.tfstate.*
 *.tfplan
+*.tfvars
+!*.tfvars.example
 
 # Backend Python
 backend/.venv/

@@ -40,6 +40,12 @@ variable "project" {
   type        = string
 }
 
+variable "floci_issuer_base_url" {
+  default     = "http://localhost:4566"
+  description = "Host con el que el emulador Floci firma el `iss` de sus tokens de Cognito."
+  type        = string
+}
+
 variable "use_floci" {
   default     = true
   description = "Indica que el provider se ejecuta contra Floci y no contra AWS real."

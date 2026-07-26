@@ -30,9 +30,12 @@ Tareas centrales: 12 · Opcionales: 3.
   - Verificar que el juego carga y se juega en la URL pública
   - _Requisitos: 1.1, 1.3, 1.5_
 
-- [ ] 4. Escribir `scripts/desplegar.sh`
+- [x] 4. Escribir `scripts/desplegar.sh`
   - `set -e`, lint + test + build antes de subir, invalidación e impresión de URL
   - _Requisitos: 5.1, 5.2, 5.3_
+  - _Verificado: `scripts/desplegar.sh` con `set -euo pipefail`, lint + test +
+    validar:escenarios + build, `s3 sync --delete`, invalidación e impresión de
+    la URL. Aún no se ejecuta: falta el bucket y la distribución (tareas 1-2)._
 
 ### Fase 2: Lambda de fallback (día 5)
 
@@ -69,9 +72,13 @@ Tareas centrales: 12 · Opcionales: 3.
 
 ### Fase 4: Entregables (domingo)
 
-- [ ] 12. Diagrama de arquitectura
+- [x] 12. Diagrama de arquitectura
   - Generarlo con el MCP `aws-diagram` y exportarlo a `docs/arquitectura.png`
   - _Requisitos: 4.2_
+  - _Verificado: `docs/diagramas/arquitectura-backend.svg` con iconos oficiales
+    de AWS, más los `.mmd` de consentimiento, secuencia del reto, modelo físico
+    y observabilidad. Ruta y formato distintos a los del plan legado (SVG
+    versionable en vez de PNG); `arquitectura.md` ya apunta ahí._
 
 - [x] 13. README completo
   - Qué es, URL, cómo correr, arquitectura, uso de Kiro, reparto del equipo
