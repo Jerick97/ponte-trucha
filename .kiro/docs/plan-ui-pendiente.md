@@ -42,6 +42,11 @@ estado compartido; avisar antes"). El estado de sesión/perfil activo tocará
 
 ## 4. Mejoras de juego (pedidas por Claudia)
 
+> Estado al 25-jul-2026: el confeti y la mascota de racha ya están en el árbol
+> (`src/components/Confetti.tsx`, `MascotaRacha.tsx`, `sonidoRacha.ts`) y
+> cableados en `App.tsx`. Jerick confirma si el ítem de confeti se cierra tal
+> como estaba pedido.
+
 - [ ] **Confeti al acertar** — animación al responder bien. Respetar
       `prefers-reduced-motion` (ya es patrón del proyecto). Sin dependencias
       nuevas sin acuerdo: evaluar hacerlo con CSS/canvas propio.

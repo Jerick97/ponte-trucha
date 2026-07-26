@@ -1,55 +1,67 @@
 /**
- * Paso 2: cuenta del adulto (registro o inicio de sesion).
+ * Paso 2: cuenta del adulto (registro o inicio de sesion) contra Cognito.
  *
- * MOCK: hoy no hay Cognito (`backend/` no existe todavia). El formulario valida
- * en el cliente y simula la respuesta para que el flujo sea recorrible en la
- * demo. La contrasena NUNCA sale de este componente ni se guarda: se descarta
- * al enviar. El reemplazo real es la tarea 9 de la spec (owner: Francis).
+ * La contrasena vive en el estado local de este componente y se borra al
+ * enviar: no entra al store, no se persiste y solo viaja a Cognito por HTTPS.
+ * La validacion de aqui es de forma; la de verdad la hace el User Pool.
  */
 
 import { useState } from 'react';
-import { FlaskConical, SlidersHorizontal, Trash2, Users } from 'lucide-react';
+import { ShieldCheck, SlidersHorizontal, Trash2, Users } from 'lucide-react';
 import { MarcoAdulto } from './MarcoAdulto';
 import { PanelLateral } from './PanelLateral';
 
+export type ModoAcceso = 'registro' | 'ingreso';
+
 interface Props {
-  /** Estado de la operacion simulada: idle | loading | success | error. */
+  /** Estado de la operacion remota: idle | loading | success | error. */
   cargando: boolean;
   error: string | null;
-  onEnviar: (correo: string) => void;
+  /** Aviso neutro, por ejemplo tras confirmar la cuenta. */
+  aviso: string | null;
+  onEnviar: (modo: ModoAcceso, correo: string, clave: string) => void;
   onVolver: () => void;
 }
-
-type Modo = 'registro' | 'ingreso';
 
 /** Validacion mínima de forma; la de verdad la hará Cognito. */
 function correoValido(valor: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(valor);
 }
 
-const MINIMO_CLAVE = 8;
+/** Requisitos del User Pool (`infra/modules/identity`): 12 y cuatro familias. */
+const MINIMO_CLAVE = 12;
 
-export function PasoAcceso({ cargando, error, onEnviar, onVolver }: Props) {
-  const [modo, setModo] = useState<Modo>('registro');
+function claveValida(valor: string): boolean {
+  return (
+    valor.length >= MINIMO_CLAVE &&
+    /[a-z]/.test(valor) &&
+    /[A-Z]/.test(valor) &&
+    /\d/.test(valor) &&
+    /[^A-Za-z0-9]/.test(valor)
+  );
+}
+
+export function PasoAcceso({ cargando, error, aviso, onEnviar, onVolver }: Props) {
+  const [modo, setModo] = useState<ModoAcceso>('registro');
   const [correo, setCorreo] = useState('');
   const [clave, setClave] = useState('');
   const [verClave, setVerClave] = useState(false);
   const [tocado, setTocado] = useState(false);
 
+  const esRegistro = modo === 'registro';
   const correoMal = tocado && correo !== '' && !correoValido(correo);
-  const claveMal = tocado && modo === 'registro' && clave !== '' && clave.length < MINIMO_CLAVE;
-  const listo = correoValido(correo) && (modo === 'ingreso' ? clave.length > 0 : clave.length >= MINIMO_CLAVE);
+  const claveMal = tocado && esRegistro && clave !== '' && !claveValida(clave);
+  const listo = correoValido(correo) && (esRegistro ? claveValida(clave) : clave.length > 0);
 
   function enviar(e: React.FormEvent) {
     e.preventDefault();
     setTocado(true);
-    if (!listo) return;
+    if (!listo || cargando) return;
+    const enviada = clave;
     // La clave se descarta aqui mismo: solo el correo sigue en la sesion.
     setClave('');
-    onEnviar(correo.trim().toLowerCase());
+    onEnviar(modo, correo.trim().toLowerCase(), enviada);
   }
-
-  const esRegistro = modo === 'registro';
 
   return (
     <MarcoAdulto
@@ -151,7 +163,7 @@ export function PasoAcceso({ cargando, error, onEnviar, onVolver }: Props) {
                   placeholder={esRegistro ? `Mínimo ${MINIMO_CLAVE} caracteres` : 'Tu contraseña'}
                   value={clave}
                   aria-invalid={claveMal}
-                  aria-describedby={claveMal ? 'ac-clave-error' : undefined}
+                  aria-describedby={esRegistro ? 'ac-clave-ayuda' : undefined}
                   onChange={(e) => setClave(e.target.value)}
                   onBlur={() => setTocado(true)}
                 />
@@ -164,35 +176,37 @@ export function PasoAcceso({ cargando, error, onEnviar, onVolver }: Props) {
                   {verClave ? 'Ocultar' : 'Ver'}
                 </button>
               </div>
-              {claveMal && (
-                <p id="ac-clave-error" className="mt-2 text-xs text-[var(--color-trampa)]">
-                  Usa al menos {MINIMO_CLAVE} caracteres.
+              {esRegistro && (
+                <p
+                  id="ac-clave-ayuda"
+                  className={`mt-2 text-xs ${claveMal ? 'text-[var(--color-trampa)]' : 'text-[var(--color-ad-texto-tenue)]'}`}
+                >
+                  {MINIMO_CLAVE} caracteres o más, con mayúscula, minúscula, número y símbolo.
                 </p>
               )}
             </div>
           </div>
 
-          <p aria-live="polite" className="min-h-5 pt-4 text-sm text-[var(--color-trampa)]">
-            {error}
+          <p aria-live="polite" className="min-h-5 pt-4 text-sm">
+            {error ? (
+              <span className="text-[var(--color-trampa)]">{error}</span>
+            ) : (
+              <span className="text-[var(--color-ad-texto-suave)]">{aviso}</span>
+            )}
           </p>
 
-          <button
-            type="submit"
-            disabled={cargando}
-            className="ad-boton ad-boton--primario w-full"
-          >
+          <button type="submit" disabled={cargando} className="ad-boton ad-boton--primario w-full">
             {cargando ? 'Un momento…' : esRegistro ? 'Crear cuenta' : 'Entrar'}
           </button>
         </div>
 
-        {/* Aviso honesto del estado del proyecto: no afirmamos lo que no hay. */}
         <p className="mt-5 flex items-start gap-2.5 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
-          <FlaskConical
+          <ShieldCheck
             className="mt-px h-3.5 w-3.5 flex-none text-[var(--color-ad-acento-claro)]"
             aria-hidden="true"
           />
-          Versión de demostración del hackathon: la cuenta se crea solo en este navegador y se
-          borra al recargar. Todavía no hay servidor detrás.
+          La cuenta se crea en Amazon Cognito y la contraseña no pasa por nuestros servidores. La
+          sesión vive solo en esta pestaña: al recargar hay que entrar otra vez.
         </p>
       </form>
     </MarcoAdulto>

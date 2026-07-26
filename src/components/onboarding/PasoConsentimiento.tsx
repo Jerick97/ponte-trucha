@@ -21,12 +21,22 @@ import { PanelLateral } from './PanelLateral';
 
 interface Props {
   consentimiento: MapaConsentimiento;
+  /** `true` mientras el servidor registra las decisiones. */
+  guardando: boolean;
+  error: string | null;
   onDecidir: (clave: ClaveFinalidad, otorga: boolean) => void;
   onConfirmar: () => void;
   onVolver: () => void;
 }
 
-export function PasoConsentimiento({ consentimiento, onDecidir, onConfirmar, onVolver }: Props) {
+export function PasoConsentimiento({
+  consentimiento,
+  guardando,
+  error,
+  onDecidir,
+  onConfirmar,
+  onVolver,
+}: Props) {
   const coreOtorgado = puedeUsar(consentimiento, 'core');
 
   return (
@@ -116,16 +126,22 @@ export function PasoConsentimiento({ consentimiento, onDecidir, onConfirmar, onV
         <button
           type="button"
           onClick={onConfirmar}
-          disabled={!coreOtorgado}
+          disabled={!coreOtorgado || guardando}
           className="ad-boton ad-boton--primario w-full sm:w-auto"
         >
-          Guardar y continuar
+          {guardando ? 'Guardando…' : 'Guardar y continuar'}
         </button>
 
-        <p aria-live="polite" className="mt-4 text-sm text-[var(--color-ad-texto-tenue)]">
-          {coreOtorgado
-            ? 'Listo. El siguiente paso es el perfil de tu hijo o hija.'
-            : 'Para crear la cuenta necesitas activar «Cuenta y progreso».'}
+        <p aria-live="polite" className="mt-4 text-sm">
+          {error ? (
+            <span className="text-[var(--color-trampa)]">{error}</span>
+          ) : (
+            <span className="text-[var(--color-ad-texto-tenue)]">
+              {coreOtorgado
+                ? 'Cada decisión queda registrada con la versión del aviso y su fecha.'
+                : 'Para crear la cuenta necesitas activar «Cuenta y progreso».'}
+            </span>
+          )}
         </p>
       </div>
 

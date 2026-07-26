@@ -39,9 +39,21 @@
     y las rutas de `infra/modules/api`._
 - [x] 8. Crear Cognito y JWT authorizer mediante Terraform con tests
   - _Requisitos: R2, R6_
-- [ ] 9. Integrar onboarding adulto y sesión con el frontend
+- [x] 9. Integrar onboarding adulto y sesión con el frontend
   - _Requisitos: R1, R2, R3_
   - _Coordinación: toca UI de Jerick y estado compartido; avisar antes_
+  - _Verificado: `src/api/cognito.ts` habla con el User Pool (SignUp,
+    ConfirmSignUp, ResendConfirmationCode, InitiateAuth, RevokeToken) sin SDK ni
+    secretos; `src/store/sesion.ts` ya no simula el login: crea la cuenta con
+    `POST /v1/cuenta`, registra una decisión por finalidad con
+    `PATCH /v1/consentimientos/{purpose}` y crea el perfil con `POST /v1/perfiles`
+    usando el `childId` del servidor. El access token vive en `src/api/token.ts`
+    (memoria; nunca storage ni URL). UI nueva: `PasoConfirmacion.tsx` y estados
+    remotos en `PasoAcceso`/`PasoConsentimiento`/`PasoPerfil`. Pruebas:
+    `src/test/sesion.test.ts` (21, con `fetch` falso: puertas del flujo, error de
+    Cognito, confirmación pendiente y privacidad). AWS real usa Hosted UI +
+    Authorization Code + PKCE según ADR-002; el emulador conserva el flujo
+    directo porque no implementa Hosted UI._
 - [ ] 10. Implementar revocación, borrado y sus pruebas de integración
   - _Requisitos: R3, R5_
   - _Avance parcial: revocación y borrado limpian cuenta/perfil, consentimientos,
@@ -56,5 +68,32 @@
 - [ ] 12. Documentar runbook de recuperación, revocación y borrado
   - _Requisitos: R2, R5_
 
-Siguiente responsable: **Francis** en 1, 2, 9 (coordina con Jerick), 10, 11 y
-12. Los textos legales de la tarea 2 los define **Clau/PM + asesoría legal**.
+## Sesión y control parental en el dispositivo
+
+- [x] 13. Reanudar la sesión del adulto tras recargar, sin volver a la landing
+  - _Requisitos: R2, R6_
+  - _Verificado: `src/api/sesionGuardada.ts` guarda solo el refresh token en
+    `sessionStorage`; `useSesion.restaurar()` lo cambia por un access token con
+    `REFRESH_TOKEN_AUTH`, recupera cuenta, correo, consentimientos y perfiles, y
+    olvida la sesión si algo falla. Cerrar sesión revoca el token en Cognito.
+    Deuda aceptada y migración a cookie `HttpOnly` (patrón BFF) registradas en la
+    enmienda de ADR-002. Pruebas: `src/test/sesion.test.ts` (31), incluidas
+    "el access token nunca se persiste" y "nunca en localStorage"; verificado
+    también por HTTP contra el emulador (login, refresh, GetUser, revocación)._
+- [x] 14. Listar y elegir perfiles infantiles al entrar
+  - _Requisitos: R4_
+  - _Verificado: `GET /v1/perfiles` alimenta `PasoPerfiles.tsx`; elegir un perfil
+    conserva su `childId` y su progreso, y crear otro respeta el máximo de 4 que
+    impone el backend. Pruebas en `src/test/sesion.test.ts`._
+- [ ] 15. Exigir un código del adulto para salir del juego y entrar al área de padres
+  - _Requisitos: R2, R6_
+  - _Diseño acordado: PIN de 4 a 6 dígitos definido por el adulto, guardado solo
+    como hash `scrypt` con salt por cuenta (librería estándar), con límite de
+    intentos y bloqueo temporal por TTL. Nunca en el frontend ni en logs.
+    Requiere ADR que documente la excepción a "no guardar respuestas secretas"._
+- [ ] 16. Migrar la sesión a cookie `HttpOnly` (patrón BFF) y retirar `sessionStorage`
+  - _Requisitos: R2, R6_
+  - _Depende de que CloudFront sirva `/v1` en el mismo origen que la SPA._
+
+Siguiente responsable: **Francis** en 1, 2, 10, 11, 12, 15 y 16. Los textos
+legales de la tarea 2 los define **Clau/PM + asesoría legal**.

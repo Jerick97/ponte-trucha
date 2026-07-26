@@ -21,11 +21,14 @@ import { MarcoAdulto } from './MarcoAdulto';
 import { PanelLateral } from './PanelLateral';
 
 interface Props {
+  /** `true` mientras el servidor crea el perfil y devuelve su id opaco. */
+  creando: boolean;
+  error: string | null;
   onCrear: (seleccion: SeleccionPerfil) => void;
   onVolver: () => void;
 }
 
-export function PasoPerfil({ onCrear, onVolver }: Props) {
+export function PasoPerfil({ creando, error, onCrear, onVolver }: Props) {
   const [aliasId, setAliasId] = useState('');
   const [avatarId, setAvatarId] = useState('');
   const [banda, setBanda] = useState<BandaEtaria | ''>('');
@@ -145,12 +148,16 @@ export function PasoPerfil({ onCrear, onVolver }: Props) {
 
       <button
         type="button"
-        disabled={!listo}
+        disabled={!listo || creando}
         onClick={() => onCrear(seleccion)}
         className="ad-boton ad-boton--primario mt-9 w-full sm:w-auto"
       >
-        Crear perfil y jugar
+        {creando ? 'Creando el perfil…' : 'Crear perfil y jugar'}
       </button>
+
+      <p aria-live="polite" className="mt-4 min-h-5 text-sm text-[var(--color-trampa)]">
+        {error}
+      </p>
 
       <p className="mt-5 flex items-start gap-2.5 text-xs leading-relaxed text-[var(--color-ad-texto-tenue)]">
         <ShieldCheck

@@ -69,6 +69,13 @@ export const BANDAS: readonly Banda[] = [
   },
 ] as const;
 
+/**
+ * Perfiles por cuenta adulta. Debe coincidir con
+ * `MAX_CHILD_PROFILES_PER_PARENT` del backend: el servidor es quien manda y
+ * responde 409 al pasarse; esto solo evita ofrecer un boton que va a fallar.
+ */
+export const MAX_PERFILES = 4;
+
 export interface SeleccionPerfil {
   aliasId: string;
   avatarId: string;

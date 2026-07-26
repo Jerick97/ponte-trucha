@@ -25,6 +25,7 @@ import { reproducirSonidoDc } from './components/apps/discord/sonidosDc';
 import { reproducirSonidoWa } from './components/apps/whatsapp/sonidosWa';
 import { reproducirSonidoRb } from './components/apps/roblox/sonidosRb';
 import { reproducirSonidoGm } from './components/apps/gmail/sonidosGm';
+import { AvisoServidor } from './components/AvisoServidor';
 import { Burbuja } from './components/Burbuja';
 import { Confetti } from './components/Confetti';
 import { MascotaRacha } from './components/MascotaRacha';
@@ -54,13 +55,22 @@ export default function App() {
   // Los iconos se descargan mientras el nino ve la pantalla apagada.
   useEffect(precargarIconos, []);
 
+  // Al cargar la pagina se intenta reanudar la sesion del adulto: si habia una
+  // guardada, no se vuelve a la landing.
+  const restaurarSesion = useSesion((s) => s.restaurar);
+  useEffect(() => {
+    void restaurarSesion();
+  }, [restaurarSesion]);
+
   const fase = usePartida((s) => s.fase);
   const partida = usePartida((s) => s.partida);
-  const ronda = usePartida((s) => s.ronda);
   const indice = usePartida((s) => s.indice);
   const chat = usePartida((s) => s.chat);
   const chatCargando = usePartida((s) => s.chatCargando);
   const escenario = usePartida((s) => s.escenarioActual());
+  const totalRondas = usePartida((s) => s.totalRondas);
+  const estadoReto = usePartida((s) => s.estadoReto);
+  const errorJuego = usePartida((s) => s.errorJuego);
 
   // Suena la alerta cada vez que llega un mensaje nuevo del escenario
   // (tambien con el telefono bloqueado, como en un celular real). Discord
@@ -117,22 +127,28 @@ export default function App() {
   const appDelEscenario = enPartida && escenario ? appPorCanal(escenario.canal) : null;
   const appAbierta = APPS.find((app) => app.id === telefono.appAbierta) ?? null;
 
+  // Pedir un reto, calificarlo y avanzar son llamadas al backend: se disparan
+  // sin bloquear la UI y el store publica su estado en `errorJuego`.
   const desbloquear = () => {
     despachar({ tipo: 'DESBLOQUEAR' });
-    if (fase === 'inicio') iniciar();
+    if (fase === 'inicio') void iniciar();
   };
   const avanzar = () => {
     despachar({ tipo: 'CERRAR_APP' });
-    siguiente();
+    void siguiente();
   };
   const jugarOtraVez = () => {
     despachar({ tipo: 'CERRAR_APP' });
     reiniciar();
-    iniciar();
+    void iniciar();
+  };
+  // Si el reto no llego, se reintenta el mismo paso: arrancar o pedir el siguiente.
+  const reintentar = () => {
+    void (partida.resultados.length === 0 ? iniciar() : siguiente());
   };
 
   const hud = enPartida && fase !== 'chat' ? (
-    <Hud ronda={indice + 1} totalRondas={ronda.length} puntaje={partida.puntaje} racha={partida.racha} />
+    <Hud ronda={indice + 1} totalRondas={totalRondas} puntaje={partida.puntaje} racha={partida.racha} />
   ) : undefined;
 
   const ultimoResultado = partida.resultados[partida.resultados.length - 1];
@@ -404,6 +420,12 @@ export default function App() {
         }}
       >
         {pantalla()}
+        {errorJuego && (
+          <AvisoServidor
+            mensaje={errorJuego}
+            {...(estadoReto === 'error' ? { onReintentar: reintentar } : {})}
+          />
+        )}
         {celebrar && <Confetti key={escenario?.id ?? 'confeti'} piezas={piezasConfeti} />}
         {celebrar && <MascotaRacha key={`m-${escenario?.id ?? 'x'}`} racha={partida.racha} />}
       </Iphone>

@@ -68,9 +68,12 @@ Tareas centrales: 10 · Opcionales: 3 · Estimado: 3 noches repartidas.
   - Ajustar antes del video
   - _Requisitos: 4.1_
 
-- [ ] 12*. Tabla de escenarios para el README y el video
+- [x] 12*. Tabla de escenarios para el README y el video
   - Tipo, ejemplo, señal que lo delata (formato del brief)
   - _Requisitos: 3.1_
+  - _Verificado: `.kiro/docs/tabla-escenarios.md` generada del banco real.
+    Hay que regenerarla al cerrar las tareas 5-8 porque hoy refleja 11
+    escenarios._
 
 - [ ] 13*. Semilla de roadmap: generación semanal con Kiro
   - Documentar cómo se generarían escenarios nuevos cada semana (fuera del MVP)

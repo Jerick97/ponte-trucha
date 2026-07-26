@@ -39,17 +39,24 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
 
 ### Fase 2: Contrato del canal correo (coordinar con Clau)
 
-- [ ] 4. Ampliar el contrato para correo
+- [x] 4. Ampliar el contrato para correo
   - `remitente.direccion?` y `asunto?` en `src/types/escenario.ts`
   - En `escenarios.schema.json` y `scripts/validar-escenarios.mjs`:
     obligatorios si `canal === 'correo'`, prohibidos en otros canales
   - _Requisitos: 8.1, 8.2_
+  - _Verificado: `src/types/escenario.ts` (`asunto?`), `escenarios.schema.json`
+    y `scripts/validar-escenarios.mjs:91-97` (obligatorio en `correo`,
+    prohibido en el resto). Ver la adenda del RFC en
+    `.kiro/docs/rfc-contrato-escenarios-v2.md`._
 
-- [ ] 5. Escenario de correo de ejemplo
+- [x] 5. Escenario de correo de ejemplo
   - Un escenario `correo` en el banco (premio falso o "cuenta suspendida"),
     con la dirección rara del remitente como señal delatora
   - `npm run validar:escenarios` en verde
   - _Requisitos: 8.3, 8.4_
+  - _Verificado: 3 escenarios de canal `correo` en `src/data/escenarios.json`
+    (premio falso, aviso del colegio legítimo y uno más);
+    `npm run validar:escenarios` → 11 escenarios válidos._
 
 ### Fase 3: Hardware del teléfono
 
@@ -104,10 +111,13 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
     dentro de `src/components/apps/`
   - _Requisitos: 6.1, 6.2, 6.4, 7.1, 7.2, 7.3, 7.4_
 
-- [ ] 14. `AppGmail`
+- [x] 14. `AppGmail`
   - Vista de correo: remitente con dirección, asunto y cuerpo; decisión y
     feedback dentro de la misma vista
   - _Requisitos: 6.3, 7.1, 7.2_
+  - _Verificado: `src/components/apps/gmail/` (bandeja, correo, composer,
+    drawer, feedback y sonidos) cableada en `App.tsx`; `npm run build` en
+    verde._
 
 - [ ] 15. Recablear `App.tsx` y retirar la UI vieja
   - `useReducer(maquina)` + tabla de sincronización del design; volver al home
@@ -115,6 +125,9 @@ Tareas centrales: 15 · Opcionales: 3 · Estimado: 3 noches + fin de semana.
     eliminar `MarcoTelefono` y `PantallaInicio`
   - `npm run test` en verde sin tocar los tests existentes
   - _Requisitos: 5.4, 5.5, 7.5, 10.1, 10.2, 10.3_
+  - _Avance parcial: `App.tsx` ya usa `useReducer(transicion)` y no importa la
+    UI vieja, pero `src/components/MarcoTelefono.tsx` y `PantallaInicio.tsx`
+    siguen en el árbol. Falta borrarlos y confirmar que nadie los referencia._
 
 ### Fase 6: Verificación y pulido
 
