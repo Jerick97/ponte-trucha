@@ -52,25 +52,33 @@ class ConsentState(StrEnum):
 # Catálogo cerrado de alias y avatares para perfiles infantiles. Ningún alias
 # admite nombre real; ningún avatar es una foto. Ampliar el catálogo es una
 # decisión de contenido (Clau) que agrega entradas aquí, nunca texto libre.
+#
+# Los ids son exactamente los que el frontend ofrece en
+# `src/onboarding/perfilInfantil.ts` (`ALIAS_CATALOGO` y `AVATARES_CATALOGO`).
+# Las etiquetas y emoji visibles viven allá; aquí solo se valida el id.
 ALLOWED_ALIAS_IDS: frozenset[str] = frozenset(
     {
-        "alias-zorro",
-        "alias-colibri",
-        "alias-puma",
-        "alias-vicuna",
-        "alias-condor",
-        "alias-delfin",
+        "ojo-de-aguila",
+        "trucha-veloz",
+        "detective-cuy",
+        "capitan-alerta",
+        "rayo-andino",
+        "zorro-listo",
+        "tigre-atento",
+        "buho-nocturno",
     }
 )
 
 ALLOWED_AVATAR_IDS: frozenset[str] = frozenset(
     {
-        "avatar-01",
-        "avatar-02",
-        "avatar-03",
-        "avatar-04",
-        "avatar-05",
-        "avatar-06",
+        "aguila",
+        "cuy",
+        "zorro",
+        "tigre",
+        "buho",
+        "llama",
+        "pulpo",
+        "rana",
     }
 )
 

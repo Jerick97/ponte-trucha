@@ -6,7 +6,7 @@ requires-python = ">=3.14,<3.15"
 
 [tool.pytest.ini_options]
 addopts = "--strict-config --strict-markers --cov=ponte_trucha --cov-report=term-missing"
-pythonpath = ["src"]
+pythonpath = ["src", "scripts"]
 testpaths = ["tests"]
 
 [tool.ruff]
@@ -22,7 +22,8 @@ select = ["E", "F", "I", "B", "UP"]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path", "fastapi.Body"]
 
 [tool.pyright]
-include = ["src", "tests"]
+extraPaths = ["scripts", "src"]
+include = ["scripts", "src", "tests"]
 pythonVersion = "3.14"
 typeCheckingMode = "strict"
 reportMissingTypeStubs = "none"

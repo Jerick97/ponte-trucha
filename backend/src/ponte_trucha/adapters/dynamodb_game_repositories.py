@@ -27,6 +27,7 @@ from ponte_trucha.domain.attempt import Attempt
 from ponte_trucha.domain.challenge import Challenge, ChallengeStatus, Grading, MessageKind
 from ponte_trucha.domain.channels import AppType
 from ponte_trucha.domain.progress import Progress
+from ponte_trucha.domain.scenario_bank import ScenarioReveal
 from ponte_trucha.domain.value_objects import Difficulty
 
 Table = Any
@@ -186,6 +187,7 @@ def _challenge_to_item(child_id: str, challenge: Challenge) -> dict[str, Any]:
             "decision": challenge.grading.decision.value,
             "signalCodes": list(challenge.grading.signal_codes),
             "feedbackCode": challenge.grading.feedback_code,
+            "reveal": challenge.grading.reveal.to_snapshot(),
         },
         "status": challenge.status.value,
         "issuedAt": challenge.issued_at.isoformat().replace("+00:00", "Z"),
@@ -211,6 +213,7 @@ def _challenge_from_item(item: dict[str, Any]) -> Challenge:
             decision=MessageKind(grading_item["decision"]),
             signal_codes=tuple(grading_item["signalCodes"]),
             feedback_code=grading_item["feedbackCode"],
+            reveal=ScenarioReveal.from_snapshot(grading_item["reveal"]),
         ),
         issued_at=datetime.fromisoformat(item["issuedAt"].replace("Z", "+00:00")),
         valid_until=datetime.fromisoformat(item["validUntil"].replace("Z", "+00:00")),

@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import Literal
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,7 +25,10 @@ from ponte_trucha.entrypoints.http.composition import (
     build_parent_ref_deriver,
     build_use_cases,
 )
-from ponte_trucha.entrypoints.http.problem_details import domain_error_handler
+from ponte_trucha.entrypoints.http.problem_details import (
+    domain_error_handler,
+    validation_error_handler,
+)
 
 
 def _camel_case(name: str) -> str:
@@ -42,7 +46,7 @@ class _Turn(BaseModel):
 class _ConversationRequest(BaseModel):
     model_config = ConfigDict(alias_generator=lambda name: _camel_case(name), extra="forbid")
 
-    escenario_id: str = Field(min_length=1, max_length=80)
+    challenge_id: str = Field(min_length=1, max_length=80)
     historial: tuple[_Turn, ...] = Field(max_length=8)
 
 
@@ -71,7 +75,9 @@ def _register_conversation_route(app: FastAPI, *, base_adult_dependency: AdultDe
         use_cases: UseCases = Depends(_use_cases),
     ) -> _ConversationResponse:
         child_turns = tuple(turn.texto for turn in body.historial if turn.autor == "nino")
-        text = use_cases.conversation_reply.execute(adult, child_turns=child_turns)
+        text = use_cases.conversation_reply.execute(
+            adult, challenge_id=body.challenge_id, child_turns=child_turns
+        )
         return _ConversationResponse(texto=text)
 
 
@@ -84,6 +90,7 @@ def create_ia_app() -> FastAPI:
         redoc_url=None,
     )
     app.add_exception_handler(DomainError, domain_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
     app.state.use_cases = build_use_cases()
     dependency = build_authenticated_adult_dependency(parent_ref_deriver=build_parent_ref_deriver())
     _register_conversation_route(app, base_adult_dependency=dependency)

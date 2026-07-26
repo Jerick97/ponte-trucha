@@ -10,12 +10,16 @@ def _onboard_child(client: TestClient, *, sub: str) -> tuple[dict[str, str], str
     client.post("/v1/cuenta", json={"ageGateRuleVersion": "age-gate-v1"}, headers=headers)
     client.patch(
         "/v1/consentimientos/core",
-        json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
+        json={
+            "decision": "grant",
+            "policyVersion": "politica-2026-07-v1",
+            "method": "explicit-click",
+        },
         headers={**headers, "Idempotency-Key": f"consent-{sub}"},
     )
     child = client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     ).json()
     return headers, child["childId"]

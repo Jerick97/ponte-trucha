@@ -9,4 +9,4 @@ de uso `UpdateConsent` compara la versión enviada por el adulto contra
 from __future__ import annotations
 
 CURRENT_AGE_GATE_RULE_VERSION: str = "age-gate-v1"
-CURRENT_PRIVACY_POLICY_VERSION: str = "privacy-v1"
+CURRENT_PRIVACY_POLICY_VERSION: str = "politica-2026-07-v1"

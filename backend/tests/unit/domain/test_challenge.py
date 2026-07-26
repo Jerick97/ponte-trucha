@@ -13,6 +13,7 @@ from ponte_trucha.domain.challenge import (
     MessageKind,
 )
 from ponte_trucha.domain.channels import AppType
+from ponte_trucha.domain.scenario_bank import ScenarioReveal, ScenarioSignal
 from ponte_trucha.domain.value_objects import AgeBand, Difficulty
 
 _NOW = datetime(2026, 7, 24, 12, 0, tzinfo=UTC)
@@ -31,6 +32,14 @@ def _make_challenge(**overrides: object) -> Challenge:
             decision=MessageKind.TRAP,
             signal_codes=("pide-clave",),
             feedback_code="pide-clave-nunca",
+            reveal=ScenarioReveal(
+                scenario_type="robo-de-cuenta",
+                signals=(
+                    ScenarioSignal(fragment="dame tu clave", explanation="Nadie pide tu clave."),
+                ),
+                lesson="Nadie que sea de verdad te pide tu clave.",
+                allows_conversation=True,
+            ),
         ),
         "issued_at": _NOW,
         "valid_until": _NOW + timedelta(minutes=30),

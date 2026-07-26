@@ -76,3 +76,23 @@ class NoEligibleScenarioError(DomainError):
     """El banco curado no tiene ningún escenario elegible para emitir."""
 
     code = "NO_ELIGIBLE_SCENARIO"
+
+
+class ConversationNotAllowedError(DomainError):
+    """El reto no admite conversación o todavía no fue respondido.
+
+    El chat con el personaje se abre recién después del intento: antes sería
+    una pista gratis de que el mensaje es una trampa.
+    """
+
+    code = "CONVERSATION_NOT_ALLOWED"
+
+
+class ScenarioGenerationError(DomainError):
+    """El generador de escenarios no devolvió un candidato utilizable.
+
+    Cubre respuestas vacías, JSON inválido o campos faltantes. Nunca lleva el
+    texto recibido: se registra el código y se cae al banco curado.
+    """
+
+    code = "SCENARIO_GENERATION_FAILED"

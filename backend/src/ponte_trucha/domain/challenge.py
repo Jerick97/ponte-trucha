@@ -10,12 +10,13 @@ Sin dependencias externas: dominio puro.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Any
 
 from ponte_trucha.domain.channels import AppType
 from ponte_trucha.domain.errors import DomainError
+from ponte_trucha.domain.scenario_bank import ScenarioReveal
 from ponte_trucha.domain.value_objects import Difficulty
 
 
@@ -44,11 +45,17 @@ class ChallengeExpiredError(DomainError):
 
 @dataclass(frozen=True, slots=True)
 class Grading:
-    """Datos de calificación, ocultos hasta que exista un intento."""
+    """Datos de calificación, ocultos hasta que exista un intento.
+
+    `signal_codes`/`feedback_code` son slugs para métricas de baja cardinalidad;
+    `reveal` es el material educativo legible que el cliente recibe recién con
+    el resultado del intento.
+    """
 
     decision: MessageKind
     signal_codes: tuple[str, ...]
     feedback_code: str
+    reveal: ScenarioReveal
 
 
 @dataclass(slots=True)
@@ -75,6 +82,10 @@ class Challenge:
         self.status = ChallengeStatus.ANSWERED
         self.answered_at = answered_at
 
+    @property
+    def allows_conversation(self) -> bool:
+        return self.grading.reveal.allows_conversation
+
     def to_visible_payload(self) -> dict[str, Any]:
         """Representación segura para el cliente: sin `grading` ni decisión."""
         return {
@@ -82,5 +93,16 @@ class Challenge:
             "appType": self.app_type.value,
             "difficulty": self.difficulty.value,
             "payload": self.payload_snapshot,
-            "validUntil": self.valid_until.isoformat(),
+            "validUntil": format_rfc3339(self.valid_until),
         }
+
+
+def format_rfc3339(value: datetime) -> str:
+    """RFC 3339 en UTC con sufijo `Z` y precisión de segundos.
+
+    El resto del API ya usa esta forma (`createdAt`, `decidedAt`); sin esto
+    `validUntil` salía con microsegundos y `+00:00`, obligando al cliente a
+    entender dos formatos de fecha.
+    """
+
+    return value.astimezone(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")

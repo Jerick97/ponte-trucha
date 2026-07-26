@@ -12,8 +12,14 @@ from ponte_trucha.domain.attempt import Attempt
 from ponte_trucha.domain.challenge import Challenge
 from ponte_trucha.domain.child_profile import ChildProfile
 from ponte_trucha.domain.consent import ConsentRecord
+from ponte_trucha.domain.generated_scenario import (
+    GeneratedScenarioRecord,
+    GeneratedScenarioState,
+)
+from ponte_trucha.domain.guardrails import ScenarioRequest
 from ponte_trucha.domain.parent_account import ParentAccount
 from ponte_trucha.domain.progress import Progress
+from ponte_trucha.domain.scenario_bank import CuratedScenario
 from ponte_trucha.domain.value_objects import ConsentPurpose
 
 
@@ -109,3 +115,26 @@ class AttemptRepository(Protocol):
     def create(self, *, child_id: str, attempt: Attempt) -> None: ...
 
     def delete_for_child(self, *, child_id: str) -> None: ...
+
+
+class ScenarioGenerator(Protocol):
+    """Genera un escenario candidato para un canal, dificultad y veredicto.
+
+    El prompt nunca lleva identidad (`parentRef`, `childId`, correo) ni texto
+    histórico del niño: solo canal, banda etaria y dificultad (ADR-005). La
+    salida es un candidato, no contenido publicable: pasa por los guardrails.
+    """
+
+    def generate(self, *, request: ScenarioRequest, scenario_id: str) -> CuratedScenario: ...
+
+
+class ScenarioRepository(Protocol):
+    """Escenarios generados, con su ciclo de vida borrador/publicado/retirado."""
+
+    def save(self, record: GeneratedScenarioRecord) -> None: ...
+
+    def get(self, *, scenario_id: str) -> GeneratedScenarioRecord | None: ...
+
+    def list_by_state(
+        self, *, state: GeneratedScenarioState
+    ) -> tuple[GeneratedScenarioRecord, ...]: ...

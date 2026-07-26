@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from ponte_trucha.domain.errors import DomainError
 from ponte_trucha.entrypoints.http.auth import build_authenticated_adult_dependency
 from ponte_trucha.entrypoints.http.composition import build_parent_ref_deriver, build_use_cases
-from ponte_trucha.entrypoints.http.problem_details import domain_error_handler
+from ponte_trucha.entrypoints.http.problem_details import (
+    domain_error_handler,
+    validation_error_handler,
+)
 from ponte_trucha.entrypoints.http.routes_account import register_account_routes
 from ponte_trucha.entrypoints.http.routes_apps import register_apps_routes
 from ponte_trucha.entrypoints.http.routes_game import register_game_routes
@@ -38,6 +42,7 @@ def create_app() -> FastAPI:
     )
     app.add_exception_handler(404, _not_found)
     app.add_exception_handler(DomainError, domain_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
 
     @app.get("/v1/health", response_model=None)
     def health() -> JSONResponse:  # pyright: ignore[reportUnusedFunction]

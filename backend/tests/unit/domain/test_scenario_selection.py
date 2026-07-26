@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from ponte_trucha.domain.channels import AppType
 from ponte_trucha.domain.progress import Progress
-from ponte_trucha.domain.scenario_bank import CuratedScenario
+from ponte_trucha.domain.scenario_bank import CuratedScenario, ScenarioReveal, ScenarioSignal
 from ponte_trucha.domain.scenario_selection import (
     EligibilitySpecification,
     RoundRobinScenarioSelectionStrategy,
@@ -20,6 +20,12 @@ def _scenario(**overrides: object) -> CuratedScenario:
         "payload": {"mensaje": "hola"},
         "grading_signal_codes": ("pide-clave",),
         "grading_feedback_code": "pide-clave-nunca",
+        "reveal": ScenarioReveal(
+            scenario_type="robo-de-cuenta",
+            signals=(ScenarioSignal(fragment="tu clave", explanation="Nadie pide tu clave."),),
+            lesson="Nadie que sea de verdad te pide tu clave.",
+            allows_conversation=False,
+        ),
     }
     defaults.update(overrides)
     return CuratedScenario(**defaults)  # type: ignore[arg-type]

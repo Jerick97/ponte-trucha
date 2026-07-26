@@ -43,7 +43,7 @@ def _setup() -> tuple[InMemoryParentAccountRepository, InMemoryChildProfileRepos
         UpdateConsentCommand(
             purpose=ConsentPurpose.CORE,
             decision=ConsentDecision.GRANT,
-            policy_version="privacy-v1",
+            policy_version="politica-2026-07-v1",
             method="explicit-click",
         ),
     )
@@ -56,7 +56,7 @@ def _setup() -> tuple[InMemoryParentAccountRepository, InMemoryChildProfileRepos
     ).execute(
         ADULT,
         CreateChildProfileCommand(
-            alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+            alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
         ),
     )
     return accounts, profiles, profile.child_id
@@ -68,13 +68,11 @@ def test_update_changes_alias_and_avatar() -> None:
 
     updated = use_case.execute(
         ADULT,
-        UpdateChildProfileCommand(
-            child_id=child_id, alias_id="alias-colibri", avatar_id="avatar-02"
-        ),
+        UpdateChildProfileCommand(child_id=child_id, alias_id="trucha-veloz", avatar_id="cuy"),
     )
 
-    assert updated.alias_id == "alias-colibri"
-    assert updated.avatar_id == "avatar-02"
+    assert updated.alias_id == "trucha-veloz"
+    assert updated.avatar_id == "cuy"
 
 
 def test_delete_removes_profile_and_decrements_profile_count() -> None:

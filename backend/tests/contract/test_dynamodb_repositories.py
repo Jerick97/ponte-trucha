@@ -122,7 +122,7 @@ def test_consent_list_for_parent_uses_query_with_begins_with_no_scan() -> None:
                     "SK": {"S": "CONSENT#core"},
                     "purpose": {"S": "core"},
                     "state": {"S": "granted"},
-                    "policyVersion": {"S": "privacy-v1"},
+                    "policyVersion": {"S": "politica-2026-07-v1"},
                     "method": {"S": "explicit-click"},
                     "decidedAt": {"S": "2026-07-24T10:00:00Z"},
                     "revision": {"N": "1"},
@@ -150,7 +150,7 @@ def test_consent_list_for_parent_uses_query_with_begins_with_no_scan() -> None:
 def test_consent_save_round_trips_all_fields() -> None:
     table, stubber = _table()
     record = ConsentRecord.initial(
-        ConsentPurpose.CORE, policy_version="privacy-v1", now="2026-07-24T10:00:00Z"
+        ConsentPurpose.CORE, policy_version="politica-2026-07-v1", now="2026-07-24T10:00:00Z"
     )
     stubber.add_response("put_item", {}, {"TableName": TABLE_NAME, "Item": ANY})
     stubber.activate()
@@ -172,8 +172,8 @@ def test_child_profile_list_for_parent_uses_query_scoped_to_profile_prefix() -> 
                     "PK": {"S": "PARENT#ref-1"},
                     "SK": {"S": "PROFILE#child-1"},
                     "childId": {"S": "child-1"},
-                    "aliasId": {"S": "alias-zorro"},
-                    "avatarId": {"S": "avatar-01"},
+                    "aliasId": {"S": "zorro-listo"},
+                    "avatarId": {"S": "zorro"},
                     "ageBand": {"S": "8-10"},
                     "status": {"S": "active"},
                     "createdAt": {"S": "2026-07-24T10:00:00Z"},
@@ -205,8 +205,8 @@ def test_child_profile_create_uses_condition_and_delete_uses_key_only() -> None:
     table, stubber = _table()
     profile = ChildProfile.create(
         child_id="child-1",
-        alias_id="alias-zorro",
-        avatar_id="avatar-01",
+        alias_id="zorro-listo",
+        avatar_id="zorro",
         age_band=AgeBand.EIGHT_TO_TEN,
         now="2026-07-24T10:00:00Z",
     )

@@ -61,12 +61,12 @@
     (`StreakDifficultyStrategy`, reason codes `sustained_streak` /
     `repeated_errors` / `stable_performance`) y `domain/scenario_selection.py`
     (`EligibilitySpecification`, `RoundRobinScenarioSelectionStrategy`)._
-- [ ] 13. Escribir e implementar guardrails con fallback curado
+- [x] 13. Escribir e implementar guardrails con fallback curado
   - _Requisitos: R6_
-  - _Avance parcial: `ConversationReply` exige consentimiento
-    `serverSideAi`, no persiste historial, detiene presión ante negativa y
-    responde únicamente desde contenido curado. Bedrock y su cadena completa
-    permanecen apagados por ADR-005._
+  - _Verificado: `domain/guardrails.py` implementa la cadena independiente del
+    prompt; `IssueNextChallenge` descarta cualquier candidato rechazado y usa
+    el banco curado. `ConversationReply` exige consentimiento `serverSideAi`,
+    no persiste historial y detiene presión ante negativa._
 
 ## Fase 3 — Aplicación y adapters
 
@@ -84,8 +84,16 @@
     clave idempotente se guarda como digest HMAC y el replay fue probado en
     Floci. Falta agrupar Attempt + Challenge + Progress + Idempotency en una
     única `TransactWriteItems` como exige ADR-003._
-- [ ] 17. Crear adapter Bedrock y pruebas de retención/guardrails
+- [x] 17. Crear adapter Bedrock y pruebas de retención/guardrails
   - _Requisitos: R6_
+  - _Verificado: `adapters/bedrock_scenario_generator.py` usa `Converse` con un
+    prompt sin identidad ni historial y sanitiza errores del SDK. Pruebas del
+    adapter, consentimiento, kill switch, guardrails y fallback curado en
+    `tests/unit/adapters/test_bedrock_scenario_generator.py` y
+    `tests/unit/application/test_issue_next_challenge.py`. ADR-006 registra
+    Nova Lite en `us-east-1`, retención `none`, logging de invocaciones
+    desactivado y activación diferida por falta de créditos; Terraform conserva
+    Bedrock sin IAM._
 - [x] 18. Crear entrypoint FastAPI/Web Adapter y tests HTTP
   - _Requisitos: R1, R7_
   - _Verificado: rutas de cuenta, consentimiento, perfiles, retos, intentos,
@@ -108,22 +116,50 @@
   - _Requisitos: R2, R8_
 - [ ] 21. Ejecutar plan revisado y desplegar únicamente a `dev`
   - _Requisitos: R8_
-  - _Avance: plan/apply completo en el emulador Floci de `dev`; AWS real no
-    fue modificado._
+  - _Avance: plan/apply completo en el emulador Floci de `dev`, con el authorizer
+    apuntando al issuer del emulador y el puente de claims activo solo ahí; AWS
+    real no fue modificado._
+- [x] 21.1 Habilitar el flujo completo en local sin AWS ni Floci
+  - _Requisitos: R1, R7_
+  - _Verificado: `backend/scripts/dev_server.py` traduce
+    `Authorization: Bearer ptk-local.<sub>` al header
+    `x-amzn-request-context`, enruta `api-core`/`api-ia` como API Gateway y
+    limita CORS a `localhost:5173`; se niega a arrancar en modo persistente o
+    dentro de Lambda y vive fuera de `src/`, así que no entra al zip (test
+    incluido). `npm run probar:local` recorre el flujo por HTTP real y
+    `backend/tests/integration/test_local_flow.py` lo cubre en CI (14 tests).
+    Guía: `.kiro/docs/probar-en-local.md`._
+
 - [ ] 22. Ejecutar integration/E2E y pruebas de seguridad en `dev`
   - _Requisitos: R1-R8_
-  - _Avance: E2E en Floci cubre health, 401 sin token, cuenta, consentimiento,
-    perfil, reto, intento, progreso y replay idempotente. Falta el gate contra
-    AWS real y revisar rate limiting/logs operativos._
+  - _Avance: `npm run probar:floci` recorre el flujo completo con login real de
+    Cognito (token firmado por el User Pool, validado por API Gateway y
+    verificado contra el JWKS en la Lambda): health, 401 sin token, catálogo
+    público, cuenta, consentimientos, perfil, reto sin grading, intento, replay
+    idempotente, progreso, estafador curado, IDOR entre dos adultos y borrado.
+    El mismo recorrido corre sin emulador con `npm run probar:local` (tarea
+    21.1). Falta el gate contra AWS real y revisar rate limiting/logs
+    operativos._
 
 ## Fase 5 — Integración
 
 - [ ] 23. Generar/validar cliente TypeScript desde OpenAPI
   - _Requisitos: R7_
   - _Coordinación: toca contratos compartidos; avisar a Jerick_
-- [ ] 24. Integrar el loop frontend con retos/intentos/progreso remoto
+  - _Avance: el cliente existe a mano (`src/api/cliente.ts`, `tipos.ts`,
+    `mapeo.ts`) con pruebas propias, pero no se genera ni se valida contra el
+    OpenAPI todavía; depende de la tarea 3._
+- [x] 24. Integrar el loop frontend con retos/intentos/progreso remoto
   - _Requisitos: R3, R4, R5_
   - _Coordinación: toca UI/store de Jerick y lógica de Clau_
+  - _Verificado: `src/store/usePartida.ts` ya no importa el banco local; pide
+    `GET /v1/perfiles/{childId}/retos/siguiente`, califica con
+    `POST /v1/retos/{challengeId}/intentos` y usa el puntaje del servidor. La
+    revelación llega solo con el intento y la conversación exige consentimiento
+    `serverSideAi`. Pruebas: `src/test/partidaRemota.test.ts` (9) y
+    `apiMapeo.test.ts`; `npm run lint`, `npm run test` (135) y `npm run build`
+    en verde, más el recorrido HTTP por el proxy del dev server contra el
+    emulador._
 - [ ] 25. Ejecutar gate de lanzamiento del PRD y actualizar documentación
   - _Requisitos: R1-R8_
 

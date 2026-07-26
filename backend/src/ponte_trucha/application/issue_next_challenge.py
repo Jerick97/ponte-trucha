@@ -17,7 +17,7 @@ banco curado").
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 
 from ponte_trucha.application.authenticated_adult import AuthenticatedAdult
@@ -30,6 +30,7 @@ from ponte_trucha.application.ports import (
     IdGenerator,
     ParentAccountRepository,
     ProgressRepository,
+    ScenarioGenerator,
 )
 from ponte_trucha.domain.challenge import Challenge, Grading, MessageKind
 from ponte_trucha.domain.difficulty_strategy import DifficultyStrategy
@@ -38,14 +39,16 @@ from ponte_trucha.domain.errors import (
     ConsentRequiredError,
     NoEligibleScenarioError,
     ProfileNotFoundError,
+    ScenarioGenerationError,
 )
+from ponte_trucha.domain.guardrails import GuardrailChain, ScenarioRequest
 from ponte_trucha.domain.progress import Progress
 from ponte_trucha.domain.scenario_bank import CuratedScenario
 from ponte_trucha.domain.scenario_selection import (
     EligibilitySpecification,
     ScenarioSelectionStrategy,
 )
-from ponte_trucha.domain.value_objects import ConsentPurpose, Difficulty
+from ponte_trucha.domain.value_objects import AgeBand, ConsentPurpose, Difficulty
 
 _DEFAULT_VALIDITY_MINUTES = 30
 
@@ -65,6 +68,9 @@ class IssueNextChallenge:
     clock: Clock
     random_value: Callable[[], float]
     validity_minutes: int = _DEFAULT_VALIDITY_MINUTES
+    scenario_generator: ScenarioGenerator | None = None
+    guardrails: GuardrailChain = field(default_factory=GuardrailChain.with_default_rules)
+    bedrock_enabled: bool = False
 
     def execute(self, adult: AuthenticatedAdult, *, child_id: str) -> Challenge:
         account = self.accounts.get(parent_ref=adult.parent_ref)
@@ -99,6 +105,11 @@ class IssueNextChallenge:
         chosen = self.selection_strategy.select(
             candidates, progress=progress_at_target_difficulty, random_value=self.random_value()
         )
+        chosen = self._generated_or_fallback(
+            fallback=chosen,
+            parent_ref=adult.parent_ref,
+            age_band=profile.age_band,
+        )
 
         now_dt = datetime.now(UTC)
         issued_at = self.clock.now()
@@ -116,6 +127,7 @@ class IssueNextChallenge:
                 decision=MessageKind(chosen.message_kind),
                 signal_codes=chosen.grading_signal_codes,
                 feedback_code=chosen.grading_feedback_code,
+                reveal=chosen.reveal,
             ),
             issued_at=_parse_rfc3339(issued_at),
             valid_until=valid_until_dt,
@@ -125,6 +137,47 @@ class IssueNextChallenge:
             self.progresses.save(child_id=child_id, progress=progress_at_target_difficulty)
 
         return challenge
+
+    def _generated_or_fallback(
+        self,
+        *,
+        fallback: CuratedScenario,
+        parent_ref: str,
+        age_band: AgeBand,
+    ) -> CuratedScenario:
+        """Usa Bedrock solo con flag y consentimiento; cualquier rechazo cae al banco.
+
+        El método no recibe identidad infantil ni texto libre, así que esos
+        datos no pueden alcanzar al adapter por accidente.
+        """
+
+        if not self.bedrock_enabled or self.scenario_generator is None:
+            return fallback
+
+        consent = self.consents.get(
+            parent_ref=parent_ref,
+            purpose=ConsentPurpose.SERVER_SIDE_AI,
+        )
+        if consent is None or not consent.is_active_for(CURRENT_PRIVACY_POLICY_VERSION):
+            return fallback
+
+        request = ScenarioRequest(
+            app_type=fallback.app_type,
+            difficulty=fallback.difficulty,
+            age_band=age_band,
+            message_kind=fallback.message_kind,
+        )
+        try:
+            candidate = self.scenario_generator.generate(
+                request=request,
+                scenario_id=self.ids.new_id(prefix="scenario-ai"),
+            )
+        except ScenarioGenerationError:
+            return fallback
+
+        if self.guardrails.evaluate(candidate, request) is not None:
+            return fallback
+        return candidate
 
 
 def _at_difficulty(progress: Progress, difficulty: Difficulty) -> Progress:

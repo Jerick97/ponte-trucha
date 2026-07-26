@@ -276,7 +276,9 @@ def build_use_cases() -> UseCases:
             ids=ids,
             clock=clock,
         ),
-        conversation_reply=ConversationReply(accounts=accounts, consents=consents),
+        conversation_reply=ConversationReply(
+            accounts=accounts, consents=consents, challenges=challenges
+        ),
         channel_registry=ScenarioFactoryRegistry.with_default_channels(),
     )
 

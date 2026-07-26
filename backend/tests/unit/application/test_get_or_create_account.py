@@ -37,7 +37,7 @@ def test_second_access_returns_existing_account_without_resetting_consents() -> 
     consents.save(
         parent_ref="ref-1",
         record=consents.get(parent_ref="ref-1", purpose=ConsentPurpose.CORE).grant(  # type: ignore[union-attr]
-            policy_version="privacy-v1", method="click", now="2026-07-24T11:00:00Z"
+            policy_version="politica-2026-07-v1", method="click", now="2026-07-24T11:00:00Z"
         ),
     )
 

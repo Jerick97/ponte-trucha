@@ -20,10 +20,15 @@ import json
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from ponte_trucha.domain.channels import AppType
-from ponte_trucha.domain.scenario_bank import CuratedScenario
+from ponte_trucha.domain.scenario_bank import (
+    CuratedScenario,
+    ScammerProfile,
+    ScenarioReveal,
+    ScenarioSignal,
+)
 from ponte_trucha.domain.value_objects import Difficulty
 
 _CHANNEL_TO_APP_TYPE: dict[str, AppType] = {
@@ -31,12 +36,22 @@ _CHANNEL_TO_APP_TYPE: dict[str, AppType] = {
     "sms": AppType.SMS,
     "correo": AppType.EMAIL,
     "chat-juego": AppType.ROBLOX,
+    "discord": AppType.DISCORD,
 }
 
 # Campos del escenario JSON que son calificación (grading) y nunca deben
 # llegar al `payload` visible que ve el cliente antes de responder.
+# `permiteConversacion` también se oculta: solo las estafas dejan conversar, así
+# que verlo antes de decidir sería una pista gratis. Viaja en la revelación.
 _GRADING_ONLY_FIELDS = frozenset(
-    {"respuestaCorrecta", "senales", "leccion", "perfilEstafador", "tipo"}
+    {
+        "respuestaCorrecta",
+        "senales",
+        "leccion",
+        "perfilEstafador",
+        "tipo",
+        "permiteConversacion",
+    }
 )
 
 _BUNDLED_BANK_PATH = Path(__file__).parent / "data" / "escenarios.json"
@@ -62,7 +77,15 @@ def _bank_path() -> Path:
     return _MONOREPO_BANK_PATH
 
 
-def _to_curated_scenario(raw: dict[str, Any]) -> CuratedScenario | None:
+def scenario_from_raw(raw: dict[str, Any]) -> CuratedScenario | None:
+    """Traduce una entrada del banco (claves en español) a dominio.
+
+    La usan el loader del banco curado y el adapter de Bedrock: así el contenido
+    generado por IA entra exactamente por el mismo contrato que el curado, y no
+    hay dos formas distintas de construir un escenario. Devuelve `None` si el
+    canal no está en el mapa aprobado.
+    """
+
     app_type = _CHANNEL_TO_APP_TYPE.get(raw["canal"])
     if app_type is None:
         return None
@@ -82,6 +105,34 @@ def _to_curated_scenario(raw: dict[str, Any]) -> CuratedScenario | None:
         payload=payload,
         grading_signal_codes=signal_codes,
         grading_feedback_code=_slug(raw["leccion"]),
+        reveal=_to_reveal(raw),
+    )
+
+
+def _to_reveal(raw: dict[str, Any]) -> ScenarioReveal:
+    """Arma el material educativo que se entrega recién con el resultado."""
+
+    raw_profile = raw.get("perfilEstafador")
+    profile = None
+    if isinstance(raw_profile, dict):
+        profile_map = cast("dict[str, Any]", raw_profile)
+        profile = ScammerProfile(
+            disguise=str(profile_map["disfraz"]),
+            tactics=tuple(str(tactic) for tactic in profile_map.get("tacticas", ())),
+            objective=str(profile_map["objetivo"]),
+        )
+    return ScenarioReveal(
+        scenario_type=str(raw["tipo"]),
+        signals=tuple(
+            ScenarioSignal(
+                fragment=str(signal["fragmento"]),
+                explanation=str(signal["explicacion"]),
+            )
+            for signal in raw["senales"]
+        ),
+        lesson=str(raw["leccion"]),
+        allows_conversation=bool(raw.get("permiteConversacion", False)),
+        scammer_profile=profile,
     )
 
 
@@ -104,5 +155,5 @@ def load_curated_scenario_bank() -> tuple[CuratedScenario, ...]:
     """Carga y traduce el banco curado una sola vez por proceso Lambda."""
 
     raw_bank = json.loads(_bank_path().read_text(encoding="utf-8"))
-    scenarios = (_to_curated_scenario(entry) for entry in raw_bank["escenarios"])
+    scenarios = (scenario_from_raw(entry) for entry in raw_bank["escenarios"])
     return tuple(scenario for scenario in scenarios if scenario is not None)

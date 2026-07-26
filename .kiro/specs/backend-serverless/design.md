@@ -170,3 +170,4 @@ que capture prompts.
 - [ADR-003: modelo físico DynamoDB](adr/ADR-003-modelo-fisico-dynamodb.md).
 - [ADR-004: analítica desacoplada](adr/ADR-004-analitica-desacoplada.md).
 - [ADR-005: Bedrock deshabilitado hasta verificar retención cero](adr/ADR-005-bedrock-deshabilitado-hasta-retencion-cero.md).
+- [ADR-006: Nova Lite con retención cero y activación diferida](adr/ADR-006-bedrock-nova-lite-con-retencion-cero.md).

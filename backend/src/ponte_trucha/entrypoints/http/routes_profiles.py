@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Header, Request, Response, status
+from fastapi import APIRouter, Depends, Header, Path, Request, Response, status
 
 from ponte_trucha.application.authenticated_adult import AuthenticatedAdult
 from ponte_trucha.application.create_child_profile import CreateChildProfileCommand
@@ -37,9 +37,9 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
         profiles = use_cases.list_child_profiles.execute(adult)
         return [ChildProfileResponse.from_domain(profile) for profile in profiles]
 
-    @router.get("/v1/perfiles/{child_id}", response_model=ChildProfileResponse)
+    @router.get("/v1/perfiles/{childId}", response_model=ChildProfileResponse)
     def get_profile(  # pyright: ignore[reportUnusedFunction]
-        child_id: str,
+        child_id: str = Path(alias="childId"),
         adult: AuthenticatedAdult = Depends(profiles_read),
         use_cases: UseCases = Depends(_use_cases),
     ) -> ChildProfileResponse:
@@ -60,10 +60,10 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
         profile = use_cases.create_child_profile.execute(adult, command)
         return ChildProfileResponse.from_domain(profile)
 
-    @router.patch("/v1/perfiles/{child_id}", response_model=ChildProfileResponse)
+    @router.patch("/v1/perfiles/{childId}", response_model=ChildProfileResponse)
     def update_profile(  # pyright: ignore[reportUnusedFunction]
-        child_id: str,
         body: UpdateChildProfileRequest,
+        child_id: str = Path(alias="childId"),
         adult: AuthenticatedAdult = Depends(profiles_write),
         use_cases: UseCases = Depends(_use_cases),
     ) -> ChildProfileResponse:
@@ -73,10 +73,10 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
         profile = use_cases.update_child_profile.execute(adult, command)
         return ChildProfileResponse.from_domain(profile)
 
-    @router.delete("/v1/perfiles/{child_id}", status_code=status.HTTP_204_NO_CONTENT)
+    @router.delete("/v1/perfiles/{childId}", status_code=status.HTTP_204_NO_CONTENT)
     def delete_profile(  # pyright: ignore[reportUnusedFunction]
-        child_id: str,
         response: Response,
+        child_id: str = Path(alias="childId"),
         idempotency_key: str = Header(alias="Idempotency-Key", min_length=8, max_length=128),
         adult: AuthenticatedAdult = Depends(profiles_write),
         use_cases: UseCases = Depends(_use_cases),
@@ -87,11 +87,11 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
         response.headers["Idempotency-Replayed"] = str(replayed).lower()
 
     @router.get(
-        "/v1/perfiles/{child_id}/progreso",
+        "/v1/perfiles/{childId}/progreso",
         response_model=ProgressResponse,
     )
     def get_progress(  # pyright: ignore[reportUnusedFunction]
-        child_id: str,
+        child_id: str = Path(alias="childId"),
         adult: AuthenticatedAdult = Depends(profiles_read),
         use_cases: UseCases = Depends(_use_cases),
     ) -> ProgressResponse:
@@ -99,11 +99,11 @@ def register_profile_routes(*, base_adult_dependency: AdultDependency) -> APIRou
         return ProgressResponse.from_domain(progress)
 
     @router.get(
-        "/v1/perfiles/{child_id}/retos/siguiente",
+        "/v1/perfiles/{childId}/retos/siguiente",
         response_model=NextChallengeResponse,
     )
     def issue_next_challenge(  # pyright: ignore[reportUnusedFunction]
-        child_id: str,
+        child_id: str = Path(alias="childId"),
         adult: AuthenticatedAdult = Depends(game_play),
         use_cases: UseCases = Depends(_use_cases),
     ) -> NextChallengeResponse:

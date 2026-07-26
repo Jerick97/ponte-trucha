@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from ponte_trucha.application.submit_attempt import AttemptResult
 from ponte_trucha.application.update_consent import ConsentDecision
 from ponte_trucha.domain.attempt import ResponseTimeBucket
 from ponte_trucha.domain.challenge import Challenge, MessageKind
@@ -157,6 +158,19 @@ class SubmitAttemptRequest(_CamelModel):
     response_time_bucket: ResponseTimeBucket = ResponseTimeBucket.UNKNOWN
 
 
+class SignalResponse(_CamelModel):
+    """Señal delatora legible. Solo viaja con el resultado del intento."""
+
+    fragment: str
+    explanation: str
+
+
+class ScammerProfileResponse(_CamelModel):
+    disguise: str
+    tactics: tuple[str, ...]
+    objective: str
+
+
 class AttemptResultResponse(_CamelModel):
     attempt_id: str
     challenge_id: str
@@ -169,6 +183,49 @@ class AttemptResultResponse(_CamelModel):
     current_difficulty: int
     signal_codes: tuple[str, ...]
     feedback_code: str
+    # Revelación educativa: el cliente la recibe recién al responder, nunca en
+    # el GET del reto.
+    correct_decision: MessageKind
+    scenario_type: str
+    signals: tuple[SignalResponse, ...]
+    lesson: str
+    allows_conversation: bool
+    scammer_profile: ScammerProfileResponse | None = None
+
+    @classmethod
+    def from_result(cls, result: AttemptResult) -> AttemptResultResponse:
+        reveal = result.reveal
+        profile = reveal.scammer_profile
+        return cls(
+            attempt_id=result.attempt_id,
+            challenge_id=result.challenge_id,
+            is_correct=result.is_correct,
+            points_awarded=result.points_awarded,
+            score=result.score,
+            streak=result.streak,
+            total_attempts=result.total_attempts,
+            correct_attempts=result.correct_attempts,
+            current_difficulty=result.current_difficulty,
+            signal_codes=result.signal_codes,
+            feedback_code=result.feedback_code,
+            correct_decision=result.correct_decision,
+            scenario_type=reveal.scenario_type,
+            signals=tuple(
+                SignalResponse(fragment=signal.fragment, explanation=signal.explanation)
+                for signal in reveal.signals
+            ),
+            lesson=reveal.lesson,
+            allows_conversation=reveal.allows_conversation,
+            scammer_profile=(
+                None
+                if profile is None
+                else ScammerProfileResponse(
+                    disguise=profile.disguise,
+                    tactics=profile.tactics,
+                    objective=profile.objective,
+                )
+            ),
+        )
 
 
 class ProgressResponse(_CamelModel):

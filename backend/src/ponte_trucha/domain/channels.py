@@ -23,6 +23,7 @@ class AppType(StrEnum):
     SMS = "sms"
     EMAIL = "email"
     ROBLOX = "roblox"
+    DISCORD = "discord"
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,6 +47,7 @@ _DEFAULT_PRIORITY: tuple[AppType, ...] = (
     AppType.SMS,
     AppType.EMAIL,
     AppType.ROBLOX,
+    AppType.DISCORD,
 )
 
 _DEFAULT_CHANNEL_INFO: dict[AppType, ChannelInfo] = {
@@ -53,6 +55,7 @@ _DEFAULT_CHANNEL_INFO: dict[AppType, ChannelInfo] = {
     AppType.SMS: ChannelInfo(AppType.SMS, "Mensajes", "channel-sms"),
     AppType.EMAIL: ChannelInfo(AppType.EMAIL, "Correo", "channel-email"),
     AppType.ROBLOX: ChannelInfo(AppType.ROBLOX, "Roblox", "channel-roblox"),
+    AppType.DISCORD: ChannelInfo(AppType.DISCORD, "Discord", "channel-discord"),
 }
 
 

@@ -11,7 +11,13 @@ def test_apps_catalog_is_public_and_lists_metadata_only() -> None:
     assert response.status_code == 200
     assert response.headers["cache-control"] == "public, max-age=300"
     body = response.json()
-    assert {entry["appType"] for entry in body} == {"whatsapp", "sms", "email", "roblox"}
+    assert {entry["appType"] for entry in body} == {
+        "whatsapp",
+        "sms",
+        "email",
+        "roblox",
+        "discord",
+    }
     for entry in body:
         assert set(entry.keys()) == {"appType", "displayName", "iconKey"}
 

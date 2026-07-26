@@ -10,7 +10,11 @@ def _onboard_adult(client: TestClient, *, sub: str) -> dict[str, str]:
     client.post("/v1/cuenta", json={"ageGateRuleVersion": "age-gate-v1"}, headers=headers)
     client.patch(
         "/v1/consentimientos/core",
-        json={"decision": "grant", "policyVersion": "privacy-v1", "method": "explicit-click"},
+        json={
+            "decision": "grant",
+            "policyVersion": "politica-2026-07-v1",
+            "method": "explicit-click",
+        },
         headers={**headers, "Idempotency-Key": f"grant-core-{sub}"},
     )
     return headers
@@ -23,7 +27,7 @@ def test_create_profile_requires_core_consent() -> None:
 
     response = client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     )
 
@@ -37,13 +41,13 @@ def test_create_profile_succeeds_after_core_consent() -> None:
 
     response = client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     )
 
     assert response.status_code == 201
     body = response.json()
-    assert body["aliasId"] == "alias-zorro"
+    assert body["aliasId"] == "zorro-listo"
     assert body["ageBand"] == "8-10"
     assert "childId" in body
 
@@ -54,7 +58,7 @@ def test_create_profile_rejects_alias_outside_catalog() -> None:
 
     response = client.post(
         "/v1/perfiles",
-        json={"aliasId": "nombre-real-del-nino", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "nombre-real-del-nino", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     )
 
@@ -67,7 +71,7 @@ def test_list_profiles_only_shows_own_active_profiles() -> None:
     headers = _onboard_adult(client, sub="sub-1")
     client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     )
 
@@ -82,18 +86,18 @@ def test_update_and_delete_profile_round_trip() -> None:
     headers = _onboard_adult(client, sub="sub-1")
     created = client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers,
     ).json()
     child_id = created["childId"]
 
     updated = client.patch(
         f"/v1/perfiles/{child_id}",
-        json={"aliasId": "alias-colibri", "avatarId": "avatar-02"},
+        json={"aliasId": "trucha-veloz", "avatarId": "cuy"},
         headers=headers,
     )
     assert updated.status_code == 200
-    assert updated.json()["aliasId"] == "alias-colibri"
+    assert updated.json()["aliasId"] == "trucha-veloz"
 
     deleted = client.delete(
         f"/v1/perfiles/{child_id}",
@@ -112,7 +116,7 @@ def test_adult_b_cannot_read_update_or_delete_adult_a_profile() -> None:
 
     created = client.post(
         "/v1/perfiles",
-        json={"aliasId": "alias-zorro", "avatarId": "avatar-01", "ageBand": "8-10"},
+        json={"aliasId": "zorro-listo", "avatarId": "zorro", "ageBand": "8-10"},
         headers=headers_a,
     ).json()
     child_id = created["childId"]
@@ -122,7 +126,7 @@ def test_adult_b_cannot_read_update_or_delete_adult_a_profile() -> None:
 
     update_by_b = client.patch(
         f"/v1/perfiles/{child_id}",
-        json={"aliasId": "alias-colibri", "avatarId": "avatar-02"},
+        json={"aliasId": "trucha-veloz", "avatarId": "cuy"},
         headers=headers_b,
     )
     assert update_by_b.status_code == 404

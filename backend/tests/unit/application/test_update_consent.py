@@ -35,7 +35,7 @@ def test_grant_moves_purpose_to_granted() -> None:
         UpdateConsentCommand(
             purpose=ConsentPurpose.SERVER_SIDE_AI,
             decision=ConsentDecision.GRANT,
-            policy_version="privacy-v1",
+            policy_version="politica-2026-07-v1",
             method="explicit-click",
         ),
     )
@@ -51,7 +51,7 @@ def test_revoke_moves_granted_purpose_to_revoked() -> None:
         UpdateConsentCommand(
             purpose=ConsentPurpose.CORE,
             decision=ConsentDecision.GRANT,
-            policy_version="privacy-v1",
+            policy_version="politica-2026-07-v1",
             method="explicit-click",
         ),
     )
@@ -61,7 +61,7 @@ def test_revoke_moves_granted_purpose_to_revoked() -> None:
         UpdateConsentCommand(
             purpose=ConsentPurpose.CORE,
             decision=ConsentDecision.REVOKE,
-            policy_version="privacy-v1",
+            policy_version="politica-2026-07-v1",
             method="explicit-click",
         ),
     )
@@ -96,7 +96,7 @@ def test_missing_account_raises_account_not_found() -> None:
             UpdateConsentCommand(
                 purpose=ConsentPurpose.CORE,
                 decision=ConsentDecision.GRANT,
-                policy_version="privacy-v1",
+                policy_version="politica-2026-07-v1",
                 method="explicit-click",
             ),
         )

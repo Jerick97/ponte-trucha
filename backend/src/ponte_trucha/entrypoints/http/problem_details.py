@@ -10,6 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from ponte_trucha.domain.challenge import ChallengeAlreadyAnsweredError, ChallengeExpiredError
@@ -18,6 +19,7 @@ from ponte_trucha.domain.errors import (
     AccountNotFoundError,
     ChallengeNotFoundError,
     ConsentRequiredError,
+    ConversationNotAllowedError,
     DomainError,
     IdempotencyConflictError,
     InvalidConsentTransitionError,
@@ -44,6 +46,7 @@ _MAPPINGS: dict[type[DomainError], _ProblemMapping] = {
     ChallengeExpiredError: _ProblemMapping(409, "Reto expirado"),
     ChallengeNotFoundError: _ProblemMapping(404, "Reto no encontrado"),
     ConsentRequiredError: _ProblemMapping(403, "Falta consentimiento vigente"),
+    ConversationNotAllowedError: _ProblemMapping(409, "Conversación no disponible"),
     IdempotencyConflictError: _ProblemMapping(409, "Conflicto de idempotencia"),
     InvalidConsentTransitionError: _ProblemMapping(409, "Transición de consentimiento inválida"),
     InvalidProfileSelectionError: _ProblemMapping(422, "Selección de perfil inválida"),
@@ -73,3 +76,35 @@ def domain_error_handler(_: Request, exc: Exception) -> JSONResponse:
     if isinstance(exc, DomainError):
         return domain_error_response(exc)
     raise exc
+
+
+VALIDATION_ERROR_CODE = "VALIDATION_ERROR"
+
+
+def validation_error_handler(_: Request, exc: Exception) -> JSONResponse:
+    """Convierte los 422 de Pydantic/FastAPI a `problem+json` sin eco del input.
+
+    El handler por defecto de FastAPI responde `{"detail": [...]}` e incluye el
+    valor recibido (`input`), que en este producto puede ser texto del niño o
+    una `Idempotency-Key`. Aquí solo salen la ubicación del campo y el tipo de
+    error: nada del cuerpo enviado.
+    """
+
+    fields: list[dict[str, str]] = []
+    if isinstance(exc, RequestValidationError):
+        for error in exc.errors():
+            location = ".".join(str(part) for part in error.get("loc", ()))
+            fields.append({"field": location, "code": str(error.get("type", "invalid"))})
+
+    return JSONResponse(
+        content={
+            "type": f"{PROBLEM_BASE_URL}/validation-error",
+            "title": "Solicitud inválida",
+            "status": 422,
+            "detail": "Revisa los campos enviados.",
+            "code": VALIDATION_ERROR_CODE,
+            "errors": fields,
+        },
+        media_type="application/problem+json",
+        status_code=422,
+    )

@@ -15,6 +15,7 @@ def test_registry_lists_every_registered_channel_with_display_metadata_only() ->
         AppType.SMS,
         AppType.EMAIL,
         AppType.WHATSAPP,
+        AppType.DISCORD,
     }
     for entry in channels:
         assert entry.display_name
@@ -33,6 +34,7 @@ def test_registry_exposes_channels_in_declared_priority_order() -> None:
         AppType.SMS,
         AppType.EMAIL,
         AppType.ROBLOX,
+        AppType.DISCORD,
     ]
 
 

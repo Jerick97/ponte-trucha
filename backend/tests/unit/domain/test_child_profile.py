@@ -12,8 +12,8 @@ NOW = "2026-07-24T10:00:00Z"
 def test_create_builds_active_profile_without_pii_fields() -> None:
     profile = ChildProfile.create(
         child_id="child-1",
-        alias_id="alias-zorro",
-        avatar_id="avatar-01",
+        alias_id="zorro-listo",
+        avatar_id="zorro",
         age_band=AgeBand.EIGHT_TO_TEN,
         now=NOW,
     )
@@ -29,7 +29,7 @@ def test_create_rejects_alias_outside_catalog() -> None:
         ChildProfile.create(
             child_id="child-1",
             alias_id="alias-nombre-real",
-            avatar_id="avatar-01",
+            avatar_id="zorro",
             age_band=AgeBand.EIGHT_TO_TEN,
             now=NOW,
         )
@@ -39,7 +39,7 @@ def test_create_rejects_avatar_outside_catalog() -> None:
     with pytest.raises(InvalidProfileSelectionError):
         ChildProfile.create(
             child_id="child-1",
-            alias_id="alias-zorro",
+            alias_id="zorro-listo",
             avatar_id="avatar-999",
             age_band=AgeBand.EIGHT_TO_TEN,
             now=NOW,
@@ -49,18 +49,16 @@ def test_create_rejects_avatar_outside_catalog() -> None:
 def test_rename_updates_alias_avatar_and_bumps_revision() -> None:
     profile = ChildProfile.create(
         child_id="child-1",
-        alias_id="alias-zorro",
-        avatar_id="avatar-01",
+        alias_id="zorro-listo",
+        avatar_id="zorro",
         age_band=AgeBand.EIGHT_TO_TEN,
         now=NOW,
     )
 
-    renamed = profile.rename(
-        alias_id="alias-colibri", avatar_id="avatar-02", now="2026-07-24T11:00:00Z"
-    )
+    renamed = profile.rename(alias_id="trucha-veloz", avatar_id="cuy", now="2026-07-24T11:00:00Z")
 
-    assert renamed.alias_id == "alias-colibri"
-    assert renamed.avatar_id == "avatar-02"
+    assert renamed.alias_id == "trucha-veloz"
+    assert renamed.avatar_id == "cuy"
     assert renamed.revision == 1
     assert renamed.age_band == AgeBand.EIGHT_TO_TEN
 
@@ -68,8 +66,8 @@ def test_rename_updates_alias_avatar_and_bumps_revision() -> None:
 def test_mark_deleting_moves_status_and_bumps_revision() -> None:
     profile = ChildProfile.create(
         child_id="child-1",
-        alias_id="alias-zorro",
-        avatar_id="avatar-01",
+        alias_id="zorro-listo",
+        avatar_id="zorro",
         age_band=AgeBand.EIGHT_TO_TEN,
         now=NOW,
     )

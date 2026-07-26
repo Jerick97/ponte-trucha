@@ -61,7 +61,7 @@ def _setup() -> tuple[
             UpdateConsentCommand(
                 purpose=ConsentPurpose.CORE,
                 decision=ConsentDecision.GRANT,
-                policy_version="privacy-v1",
+                policy_version="politica-2026-07-v1",
                 method="explicit-click",
             ),
         )
@@ -75,7 +75,7 @@ def _setup() -> tuple[
     ).execute(
         ADULT_A,
         CreateChildProfileCommand(
-            alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+            alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
         ),
     )
 
@@ -97,9 +97,7 @@ def test_adult_b_cannot_update_adult_a_profile() -> None:
     with pytest.raises(ProfileNotFoundError):
         use_case.execute(
             ADULT_B,
-            UpdateChildProfileCommand(
-                child_id=child_id, alias_id="alias-colibri", avatar_id="avatar-02"
-            ),
+            UpdateChildProfileCommand(child_id=child_id, alias_id="trucha-veloz", avatar_id="cuy"),
         )
 
 
@@ -123,6 +121,6 @@ def test_missing_and_foreign_profile_raise_the_same_error_type() -> None:
         use_case.execute(
             ADULT_B,
             UpdateChildProfileCommand(
-                child_id="child-inexistente", alias_id="alias-colibri", avatar_id="avatar-02"
+                child_id="child-inexistente", alias_id="trucha-veloz", avatar_id="cuy"
             ),
         )

@@ -17,6 +17,7 @@ from ponte_trucha.adapters.dynamodb_game_repositories import (
 from ponte_trucha.domain.challenge import Challenge, Grading, MessageKind
 from ponte_trucha.domain.channels import AppType
 from ponte_trucha.domain.progress import Progress
+from ponte_trucha.domain.scenario_bank import ScenarioReveal, ScenarioSignal
 from ponte_trucha.domain.value_objects import Difficulty
 
 TABLE_NAME = "ptk-domain-test"
@@ -45,6 +46,12 @@ def _challenge() -> Challenge:
             decision=MessageKind.TRAP,
             signal_codes=("pide-clave",),
             feedback_code="pide-clave-nunca",
+            reveal=ScenarioReveal(
+                scenario_type="robo-de-cuenta",
+                signals=(ScenarioSignal(fragment="hola", explanation="Nadie pide tu clave."),),
+                lesson="Nadie que sea de verdad te pide tu clave.",
+                allows_conversation=False,
+            ),
         ),
         issued_at=now,
         valid_until=now,
@@ -92,6 +99,23 @@ def test_challenge_get_uses_get_item_with_consistent_read() -> None:
                         "decision": {"S": "trap"},
                         "signalCodes": {"L": [{"S": "pide-clave"}]},
                         "feedbackCode": {"S": "pide-clave-nunca"},
+                        "reveal": {
+                            "M": {
+                                "scenarioType": {"S": "robo-de-cuenta"},
+                                "signals": {
+                                    "L": [
+                                        {
+                                            "M": {
+                                                "fragment": {"S": "hola"},
+                                                "explanation": {"S": "Nadie pide tu clave."},
+                                            }
+                                        }
+                                    ]
+                                },
+                                "lesson": {"S": "Nadie te pide tu clave."},
+                                "allowsConversation": {"BOOL": False},
+                            }
+                        },
                     }
                 },
                 "status": {"S": "issued"},

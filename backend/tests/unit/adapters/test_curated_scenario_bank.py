@@ -36,11 +36,36 @@ def test_payload_never_includes_grading_fields() -> None:
         assert "leccion" not in scenario.payload
 
 
-def test_excludes_channels_not_yet_approved_in_r3() -> None:
-    """R3 solo aprueba roblox, sms, email y whatsapp. El banco de contenido
-    incluye un escenario de canal `discord` (admin-pide-clave) que todavía no
-    tiene `AppType`; se excluye hasta que una spec lo apruebe explícitamente.
+def test_serves_every_channel_of_the_content_bank() -> None:
+    """El teléfono tiene cinco canales y el API sirve los cinco.
+
+    `chat-juego` se mapea a la app Roblox y `discord` ya tiene su propio
+    `AppType`, así que ningún escenario curado queda fuera del juego.
     """
     bank = load_curated_scenario_bank()
 
-    assert all(scenario.scenario_id != "admin-pide-clave" for scenario in bank)
+    assert any(scenario.scenario_id == "admin-pide-clave" for scenario in bank)
+    assert {scenario.app_type for scenario in bank} >= {AppType.DISCORD, AppType.ROBLOX}
+
+
+def test_reveal_carries_readable_signals_and_lesson() -> None:
+    bank = load_curated_scenario_bank()
+
+    trap = next(s for s in bank if s.scenario_id == "robux-gratis-contrasena")
+
+    assert trap.reveal.scenario_type != "legitimo"
+    assert trap.reveal.lesson
+    assert all(signal.fragment and signal.explanation for signal in trap.reveal.signals)
+    assert trap.reveal.allows_conversation is True
+    assert trap.reveal.scammer_profile is not None
+
+
+def test_payload_hides_the_reveal_fields() -> None:
+    """Solo las estafas dejan conversar: verlo antes de decidir sería una pista."""
+
+    bank = load_curated_scenario_bank()
+
+    for scenario in bank:
+        assert "permiteConversacion" not in scenario.payload
+        assert "tipo" not in scenario.payload
+        assert "perfilEstafador" not in scenario.payload

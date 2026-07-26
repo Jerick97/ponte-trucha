@@ -42,7 +42,7 @@ def _bootstrap_with_core_consent() -> tuple[
         UpdateConsentCommand(
             purpose=ConsentPurpose.CORE,
             decision=ConsentDecision.GRANT,
-            policy_version="privacy-v1",
+            policy_version="politica-2026-07-v1",
             method="explicit-click",
         ),
     )
@@ -68,7 +68,7 @@ def test_create_requires_core_consent() -> None:
         use_case.execute(
             ADULT,
             CreateChildProfileCommand(
-                alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+                alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
             ),
         )
 
@@ -86,7 +86,7 @@ def test_create_succeeds_with_core_consent_and_increments_profile_count() -> Non
     profile = use_case.execute(
         ADULT,
         CreateChildProfileCommand(
-            alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+            alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
         ),
     )
 
@@ -109,7 +109,7 @@ def test_create_rejects_once_profile_limit_is_reached() -> None:
         use_case.execute(
             ADULT,
             CreateChildProfileCommand(
-                alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+                alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
             ),
         )
 
@@ -117,6 +117,6 @@ def test_create_rejects_once_profile_limit_is_reached() -> None:
         use_case.execute(
             ADULT,
             CreateChildProfileCommand(
-                alias_id="alias-zorro", avatar_id="avatar-01", age_band=AgeBand.EIGHT_TO_TEN
+                alias_id="zorro-listo", avatar_id="zorro", age_band=AgeBand.EIGHT_TO_TEN
             ),
         )

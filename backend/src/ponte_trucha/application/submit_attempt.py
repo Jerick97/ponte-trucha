@@ -6,7 +6,7 @@ import hashlib
 from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import datetime
-from typing import cast
+from typing import Any, cast
 
 from ponte_trucha.application.authenticated_adult import AuthenticatedAdult
 from ponte_trucha.application.idempotency import IdempotencyStore, execute_idempotently
@@ -29,6 +29,7 @@ from ponte_trucha.domain.errors import (
     ConsentRequiredError,
     ProfileNotFoundError,
 )
+from ponte_trucha.domain.scenario_bank import ScenarioReveal
 from ponte_trucha.domain.value_objects import ConsentPurpose
 
 
@@ -45,6 +46,8 @@ class AttemptResult:
     current_difficulty: int
     signal_codes: tuple[str, ...]
     feedback_code: str
+    correct_decision: MessageKind
+    reveal: ScenarioReveal
 
     def to_snapshot(self) -> dict[str, object]:
         return {
@@ -59,6 +62,8 @@ class AttemptResult:
             "currentDifficulty": self.current_difficulty,
             "signalCodes": list(self.signal_codes),
             "feedbackCode": self.feedback_code,
+            "correctDecision": self.correct_decision.value,
+            "reveal": self.reveal.to_snapshot(),
         }
 
     @classmethod
@@ -67,6 +72,9 @@ class AttemptResult:
         if not isinstance(raw_signal_codes, list):
             raise ValueError("Snapshot de intento inválido.")
         signal_codes = cast("list[object]", raw_signal_codes)
+        raw_reveal = snapshot["reveal"]
+        if not isinstance(raw_reveal, Mapping):
+            raise ValueError("Snapshot de intento inválido.")
         return cls(
             attempt_id=str(snapshot["attemptId"]),
             challenge_id=str(snapshot["challengeId"]),
@@ -79,6 +87,8 @@ class AttemptResult:
             current_difficulty=int(snapshot["currentDifficulty"]),  # type: ignore[arg-type]
             signal_codes=tuple(str(code) for code in signal_codes),
             feedback_code=str(snapshot["feedbackCode"]),
+            correct_decision=MessageKind(str(snapshot["correctDecision"])),
+            reveal=ScenarioReveal.from_snapshot(cast("Mapping[str, Any]", raw_reveal)),
         )
 
 
@@ -198,4 +208,6 @@ class SubmitAttempt:
             current_difficulty=updated_progress.current_difficulty.value,
             signal_codes=challenge.grading.signal_codes,
             feedback_code=challenge.grading.feedback_code,
+            correct_decision=challenge.grading.decision,
+            reveal=challenge.grading.reveal,
         )
