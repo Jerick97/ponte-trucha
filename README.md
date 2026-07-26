@@ -2,167 +2,148 @@
 
 # 🐟 Ponte Trucha Kids
 
-**El juego que enseña a niños de 8 a 13 años a detectar trampas digitales**
+**El juego que enseña a niños de 8 a 13 años a detectar estafas digitales, practicando en un teléfono simulado antes de encontrarlas en serio.**
 
-Hackathon Kiro + AWS · Código Facilito
+[**🎮 Demo en vivo**](https://ponte-trucha.vercel.app) · [Arquitectura](#arquitectura) · [Privacidad](#privacidad-infantil) · [Equipo](#equipo)
+
+![Estado](https://img.shields.io/badge/backend-desplegado%20en%20AWS-232F3E?logo=amazonwebservices)
+![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
+![Hackathon](https://img.shields.io/badge/Hackathon-Kiro%20%2B%20AWS%20·%20Código%20Facilito-orange)
 
 </div>
 
 ## Qué es
 
-Ponte Trucha Kids simula un teléfono: llega una notificación de Roblox, SMS,
-email o WhatsApp; el niño abre la app y decide si el contenido es una trampa o
-es confiable. Después recibe feedback sobre las señales, suma puntos y progresa
-en dificultad.
+A los niños ya les llegan estafas: Robux gratis, "mamá, se me malogró el cel",
+cuentas "suspendidas". **Ponte Trucha Kids** simula un teléfono completo — con
+WhatsApp, Mensajes, Discord, Roblox y Gmail — donde llegan esos mensajes de
+verdad, escritos como los reales. El niño decide si son **trampa o confianza**,
+puede conversar con el estafador para ver hasta dónde llega, y recibe feedback
+inmediato: la pista exacta que se le pasó y la regla que le sirve para la
+próxima. Sin regaños, sumando puntos y racha.
 
-La cuenta pertenece al padre, madre o tutor. El adulto completa el registro y
-los consentimientos; el niño usa un perfil sin correo, contraseña, nombre real
-ni fecha de nacimiento.
+La cuenta pertenece al padre, madre o tutor: el adulto pasa un age gate, se
+registra y decide cada permiso por separado. El niño juega con un perfil sin
+correo, sin contraseña, sin nombre real y sin fecha de nacimiento.
+
+## Pruébalo
+
+1. Entra a [ponte-trucha.vercel.app](https://ponte-trucha.vercel.app).
+2. Crea la cuenta de adulto (age gate → registro con AWS Cognito → permisos).
+3. Crea el perfil del niño (alias de catálogo + avatar + banda de edad) y juega.
 
 ## Estado del proyecto
 
 | Área | Estado |
 |---|---|
-| Teléfono simulado y loop de juego | funciona, ahora contra el backend |
-| Banco curado | lo sirve el backend; el JSON sigue siendo la fuente de contenido |
-| Cognito adulto y consentimiento | implementado; login y consentimientos reales |
-| API Python, DynamoDB y progreso remoto | implementado y probado de punta a punta |
-| Terraform del backend | implementado; aplicado en el emulador local |
-| Despliegue en AWS real | pendiente: falta layer Web Adapter, secreto y presupuesto |
-| Bedrock / IA server-side | apagado por ADR-005; hoy responde el guion curado |
-| CloudWatch, Sentry y Mixpanel | especificado; pendiente de Kiro |
+| Teléfono simulado y loop de juego | ✅ funcionando contra el backend real |
+| Backend serverless (API, DynamoDB, progreso) | ✅ **desplegado en AWS** (us-east-1) |
+| Cognito adulto, consentimiento y perfiles | ✅ flujo completo verificado extremo a extremo en producción |
+| Banco curado de escenarios | ✅ lo sirve el backend; el JSON versionado es la fuente de contenido |
+| Terraform del backend | ✅ aplicado en AWS real y reproducible en el emulador local |
+| Frontend en producción | ✅ Vercel (con rewrites hacia API Gateway); S3 + CloudFront es el objetivo final |
+| Bedrock / IA server-side | 🔒 implementado tras bandera, **apagado por defecto** (ADR-006: Nova Lite con retención cero); hoy responde el guion curado |
+| CloudWatch, Sentry y Mixpanel | 🚧 especificado; alarmas de throttling y presupuesto activos |
 
-Verificado en el emulador local (Floci), no en AWS real. La documentación
-describe la **arquitectura objetivo**; no se presenta como implementada una
-pieza pendiente. Cómo levantarlo: [probar en local](.kiro/docs/probar-en-local.md).
+La documentación distingue siempre la **arquitectura objetivo** de lo
+implementado; nada pendiente se presenta como terminado. Para levantarlo sin
+cuenta de AWS: [probar en local](.kiro/docs/probar-en-local.md).
 
-## Arquitectura objetivo
+## Arquitectura
 
 [![Arquitectura serverless de Ponte Trucha Kids](docs/diagramas/arquitectura-backend.svg)](docs/diagramas/arquitectura-backend.svg)
 
-- React/Vite en S3 privado + CloudFront.
-- Cognito para la cuenta adulta.
-- API Gateway HTTP API con JWT authorizer.
-- Lambdas Python 3.14 + FastAPI + AWS Lambda Web Adapter.
-- DynamoDB; no RDS.
-- Sin EC2, VPC ni NAT Gateway en el MVP.
-- LLM on-device como plan A y Bedrock con retención cero como fallback.
-- CloudWatch/Powertools, Sentry sin PII y Mixpanel opt-in server-side.
-- Infraestructura como código con Terraform.
+- **Frontend:** React + Vite + Tailwind; el teléfono, sus 5 apps y el juego son
+  componentes puros sin framework de UI adicional.
+- **Identidad:** Cognito User Pool solo para el adulto, con Hosted UI
+  (Authorization Code + PKCE) y scopes de resource server por permiso.
+- **API:** API Gateway HTTP API con JWT authorizer y throttling; errores RFC 9457.
+- **Cómputo:** 2 Lambdas Python 3.14 (arm64) + FastAPI, concurrencia reservada.
+- **Datos:** DynamoDB provisionado dentro del free tier; TTL y cifrado. Sin RDS,
+  EC2, VPC ni NAT Gateway.
+- **IA:** estafador conversacional con guion curado y guardrails; Bedrock
+  (retención cero) como fallback explícitamente opt-in.
+- **IaC:** todo en Terraform (módulos `data`, `identity`, `api`), probado con
+  `terraform test` y contra el emulador local antes de tocar AWS.
 
 Detalle: [arquitectura](.kiro/steering/arquitectura.md) ·
 [PRD de backend](.kiro/docs/prd-backend-serverless.md) ·
 [observabilidad](.kiro/docs/observabilidad-y-privacidad.md) ·
-[setup local/Kiro](.kiro/docs/setup-backend.md) ·
 [costos/free tier](.kiro/docs/costos-aws.md).
 
 ## Privacidad infantil
 
-- Cognito representa solo al adulto.
-- La fecha del adulto se usa como age gate y se descarta; no prueba por sí sola
-  consentimiento parental verificable.
-- El perfil infantil conserva solo alias/avatar de catálogo y banda etaria.
-- IA y analítica tienen decisiones separadas.
-- Mixpanel está apagado por defecto, sin IP/geolocalización ni texto libre.
-- Sentry elimina request, user, tokens, cuerpos y PII antes del envío.
-- El chat del niño es efímero y no se persiste.
-- El adulto puede revocar finalidades y borrar cuenta/perfiles.
+Es un producto para menores: los límites no son negociables.
+
+- Cognito representa **solo al adulto**; el perfil infantil guarda únicamente
+  alias de catálogo, avatar y banda etaria.
+- La fecha de nacimiento del adulto se evalúa en el navegador y se descarta:
+  solo queda la versión de la regla y la hora de aprobación.
+- Cada permiso (cuenta, IA en la nube, analítica) es una decisión separada,
+  versionada y revocable. Lo opcional viene **apagado por defecto**.
+- El chat del niño es efímero: no se persiste ni se registra en logs.
+- Sentry se sanitiza (sin request, user, tokens ni cuerpos) y Mixpanel es
+  opt-in server-side, sin IP ni texto libre.
+- El adulto puede revocar finalidades y borrar cuenta y perfiles por completo.
 
 Antes de producción se requiere revisión legal del mecanismo de consentimiento.
 Ver [seguridad infantil](.kiro/steering/seguridad-infantil.md).
 
-## Desarrollo con Kiro
+## Desarrollo con Kiro (spec-driven)
 
 ```text
 requirements.md → design.md/ADR → tasks.md → test rojo
                 → implementación → refactor → verificación
 ```
 
-### Specs activas de backend
+Todo el proyecto se construyó con specs de Kiro como fuente de verdad:
 
 | Spec | Alcance | Owner |
 |---|---|---|
 | [autenticación y consentimiento](.kiro/specs/autenticacion-consentimiento-parental/) | adulto, Cognito, finalidades, perfiles y borrado | Francis |
 | [backend serverless](.kiro/specs/backend-serverless/) | API, DynamoDB, apps, score, adaptación, IA y Terraform | Francis |
 | [observabilidad privada](.kiro/specs/observabilidad-privada/) | CloudWatch, Sentry, Mixpanel, alarmas y privacidad | Francis |
+| [interfaz del teléfono](.kiro/specs/interfaz-telefono/) | carcasa, apps simuladas y experiencia de juego | Jerick |
+| [banco de escenarios](.kiro/specs/banco-escenarios/) | contenido, tono infantil y reglas de juego | Clau |
 
-Las specs del demo anterior conservan historial y tienen avisos de migración.
+La arquitectura es hexagonal (Ports and Adapters) y aplica SOLID; los patrones
+usados (Repository, Strategy, Chain of Responsibility para guardrails,
+idempotencia con transacciones condicionales) resuelven necesidades
+demostradas, no decoración.
 
-### Patrones
-
-| Feature | Patrón |
-|---|---|
-| Apps/escenarios | Abstract Factory + Strategy |
-| Adaptación | Strategy + Specification |
-| Persistencia | Repository |
-| IA/proveedores | Ports and Adapters |
-| Guardrails | Chain of Responsibility |
-| Analítica | Domain Events + Adapter |
-| Intentos | Idempotency + transacción condicional |
-| Ciclos | Máquina de estados explícita |
-
-La arquitectura es hexagonal y aplica SOLID. No se agregan patrones que no
-resuelvan una necesidad demostrada.
-
-## API
-
-OpenAPI 3.1 será el contrato fuente. FastAPI ofrece Swagger UI/ReDoc en local;
-la recomendación para referencia interna es Scalar sobre el mismo
-`openapi.json`. Los errores usan RFC 9457.
-
-Ver [estrategia de documentación API](.kiro/docs/documentacion-api.md).
-
-## Plan
-
-El orden completo está en [plan Kiro](.kiro/docs/plan-7-dias.md):
-
-1. ADR, threat model, access patterns y OpenAPI.
-2. Setup Python/Terraform con TDD.
-3. Cognito, consentimiento y perfiles.
-4. Retos, intentos, progreso y adaptación.
-5. Infraestructura `dev`.
-6. Observabilidad y revisión de privacidad.
-7. Integración, seguridad y lanzamiento.
-
-## Proyecto actual
+## Correr el proyecto
 
 ```bash
 npm install
-cp .env.example .env.local
+cp .env.example .env.local   # llena los valores o genera con npm run entorno:floci
 npm run dev
 ```
 
 | Comando | Uso |
 |---|---|
-| `npm run lint` | lint frontend |
-| `npm run test` | tests frontend |
-| `npm run validar:escenarios` | valida banco curado |
-| `npm run build` | build estático |
+| `npm run lint` | lint del frontend |
+| `npm run test` | tests del frontend (Vitest) |
+| `npm run validar:escenarios` | valida el banco curado de contenido |
+| `npm run build` | build estático de producción |
 | `npm run entorno:floci` | genera `.env.local` desde los outputs de Terraform |
 | `npm run probar:floci` | recorre el API emulado con login real de Cognito |
 | `npm run probar:local` | recorre el API en memoria, sin emulador |
 
-El juego necesita backend: sin `.env.local` no hay partida, a propósito. El
-recorrido completo está en [probar en local](.kiro/docs/probar-en-local.md).
+El juego necesita backend a propósito: sin `.env.local` no hay partida. El
+recorrido completo (incluido el backend Python y el emulador Floci) está en
+[probar en local](.kiro/docs/probar-en-local.md).
 
-## Equipo
+## Equipo — KikiriKillers 🐔
 
-- **Jerick:** frontend y experiencia.
-- **Francis:** backend, IA e infraestructura AWS.
-- **Clau:** producto, contenido y reglas del juego.
+| | Rol |
+|---|---|
+| **Jerick** | Frontend, experiencia de juego y despliegue |
+| **Francis** | Backend, IA e infraestructura AWS |
+| **Clau** | Producto, contenido y reglas del juego |
 
-`src/types/`, `src/store/` y `src/App.tsx` son compartidos. Toda integración de
-backend debe avisar antes a Jerick; cambios de escenarios/score se coordinan con
-Clau.
+`src/types/`, `src/store/` y `src/App.tsx` son compartidos: toda integración se
+coordina antes de tocarlos.
 
-## Skills de Kiro
+## Licencia
 
-`.kiro/skills/` contiene skills del proyecto y las guías auditadas para:
-
-- backend AWS serverless de Ponte Trucha;
-- estilo y pruebas de Terraform;
-- auditoría de seguridad no intrusiva;
-- escenarios, pantallas y despliegue legado.
-
-Las copias se mantienen sincronizadas con `.agents/skills/`. La procedencia y el
-commit de cada skill externa están documentados dentro de su carpeta.
+Este proyecto se publica bajo la licencia [MIT](LICENSE).
