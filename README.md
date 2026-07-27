@@ -4,7 +4,7 @@
 
 **El juego que enseña a niños de 8 a 13 años a detectar estafas digitales, practicando en un teléfono simulado antes de encontrarlas en serio.**
 
-[**🎮 Demo en vivo**](https://ponte-trucha.vercel.app) · [Arquitectura](#arquitectura) · [Decisiones (ADRs)](#decisiones-de-arquitectura) · [Privacidad](#privacidad-infantil) · [Hoja de ruta](#hoja-de-ruta) · [Equipo](#equipo--kikirikillers-)
+[**🎮 Demo en vivo**](https://ponte-trucha.vercel.app) · [**🎥 Video de presentación**](https://www.youtube.com/shorts/5fAVoFoSqfo) · [Arquitectura](#arquitectura) · [Decisiones (ADRs)](#decisiones-de-arquitectura) · [Privacidad](#privacidad-infantil) · [Hoja de ruta](#hoja-de-ruta) · [Equipo](#equipo--kikirikillers-)
 
 ![Estado](https://img.shields.io/badge/backend-desplegado%20en%20AWS-232F3E?logo=amazonwebservices)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
@@ -65,6 +65,8 @@ decide entre **Es trampa** o **De confianza**, y el feedback le señala la pista
 concreta ("fuiste elegido", "hoy mismo") con la regla para la próxima.
 
 ## Pruébalo
+
+🎥 **[Mira el video de presentación](https://www.youtube.com/shorts/5fAVoFoSqfo)** o juégalo tú mismo:
 
 1. Entra a [ponte-trucha.vercel.app](https://ponte-trucha.vercel.app).
 2. Crea la cuenta de adulto (age gate → registro con AWS Cognito → permisos).
@@ -241,6 +243,90 @@ en alcance y diseñada para crecer sin rehacerse:
 
 El criterio para priorizar no cambia: ninguna mejora entra si compromete la
 privacidad infantil o los guardrails de costo.
+
+## Las preguntas del hackathon
+
+### ¿Qué problema soluciona el proyecto?
+
+**A los niños ya les están llegando estafas, y nadie les enseñó a reconocerlas.**
+
+No hablamos de "cuando sean grandes": hoy, en el celular que usan para jugar
+Roblox o hablar con sus amigos. Les llega el "Robux gratis, solo pon tu
+usuario", el "mamá, se me malogró el cel" que en realidad le llega al niño
+desde un número desconocido, el "tu cuenta fue suspendida, haz clic hoy mismo".
+Son mensajes diseñados para funcionar con urgencia y con la emoción de recibir
+algo gratis — y un niño de 10 años cae en eso mucho más rápido que un adulto.
+
+Lo que existe hoy para enseñarles es un video o una charla del colegio: le
+dices al niño "no hables con extraños en internet" y él asiente. Pero **saber
+la regla no es lo mismo que reconocer la estafa cuando te llega**. Es como
+aprender a manejar leyendo el manual.
+
+Ponte Trucha Kids es el simulador donde puede equivocarse gratis. Le damos un
+teléfono completo — WhatsApp, Mensajes, Discord, Roblox y Gmail — y ahí le
+llegan los anzuelos escritos igual que los reales, por el canal por el que
+llegarían de verdad. El niño decide si es **trampa o de confianza**, y si
+quiere, le sigue la conversación al estafador para ver cómo presiona cuando le
+dices que no.
+
+Lo importante pasa después de responder: si falla, no le decimos "mal". Le
+mostramos la pista exacta que se le pasó ("fuiste elegido", "hoy mismo", el
+link raro) y la regla que le sirve para la próxima vez. Sin regaños, con puntos
+y racha, porque un niño regañado deja de jugar y un niño que suma vuelve
+mañana.
+
+Y hay un segundo problema que tuvimos que resolver sí o sí: casi cualquier app
+para niños termina pidiendo datos del niño. La nuestra no. Una herramienta que
+enseña a cuidar tus datos no puede ser la primera en pedírtelos.
+
+### ¿Por qué debería ganar? ¿Cuáles son sus mayores fortalezas?
+
+No vamos a decir que somos los que mejor programan. Vamos a decir por qué esto
+está terminado y funcionando, y no es una demo bonita con datos falsos.
+
+1. **Está desplegado de verdad, de punta a punta.** Puedes entrar a la demo,
+   pasar el age gate, crear tu cuenta con Cognito, aceptar permisos, crear el
+   perfil del niño y jugar. Los escenarios los sirve el backend real en AWS, no
+   un JSON dentro del frontend. El progreso se guarda en DynamoDB. Verificamos
+   el flujo completo en producción, no en local.
+
+2. **Usamos Kiro como se debe usar, no como autocompletado.** Todo salió de
+   specs: requirements en formato EARS → design y ADRs → tasks → test rojo →
+   implementación → verificación. 5 specs completas, 6 ADRs registrados y
+   archivos de steering que gobiernan lo que el agente puede y no puede hacer.
+   Cuando alguien pregunta "¿por qué Bedrock está apagado?" o "¿por qué
+   DynamoDB provisionado?", hay un ADR con el contexto y las consecuencias que
+   aceptamos a conciencia.
+
+3. **La arquitectura AWS está pensada para no quemar la cuenta.** Serverless
+   completo, todo en Terraform y probado contra un emulador local antes de
+   tocar AWS real. Sin RDS, sin EC2, sin VPC, sin NAT Gateway. Y una regla
+   dura: un error de configuración tiene que degradar el servicio antes de
+   generar un cobro — si nos pasamos del free tier, hay throttling, no factura.
+
+4. **La privacidad no es una sección del README, es una restricción de
+   diseño.** La fecha de nacimiento del adulto se evalúa en el navegador y se
+   descarta. Cada permiso es una decisión aparte, versionada y revocable, y lo
+   opcional viene apagado por defecto. El chat del niño es efímero. Bedrock
+   (Nova Lite con retención cero) está implementado pero apagado tras una
+   bandera hasta verificar la retención en producción. Preferimos entregar
+   menos IA que arriesgar datos de un menor.
+
+5. **Verificamos lo que decimos.** 145 tests automatizados sobre la lógica
+   pura, más un validador propio del banco de escenarios que revisa el
+   contenido antes de cada cambio. Nada se da por terminado sin correr lint,
+   tests y build.
+
+6. **Somos honestos sobre lo que falta.** Este README distingue siempre lo
+   implementado de la arquitectura objetivo: falta migrar el hosting a S3 +
+   CloudFront, activar Bedrock, completar observabilidad y una revisión legal
+   del consentimiento. No presentamos nada pendiente como terminado. Creemos
+   que eso también cuenta.
+
+En corto: resolvemos un problema que le pasa a niños reales hoy, lo entregamos
+funcionando en AWS, lo construimos con el flujo que Kiro propone y no
+comprometimos privacidad infantil ni control de costos para que se viera más
+impresionante.
 
 ## Equipo — KikiriKillers 🐔
 
